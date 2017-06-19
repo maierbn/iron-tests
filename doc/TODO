@@ -1,0 +1,8 @@
+
+
+maybe add workflow:
+$ git remote add cbm-upstream https://github.com/cbm-software/iron
+$ git fetch cbm-upstream
+$ git checkout dihu-project
+$ git checkout devel
+$ git merge dihu-project devel

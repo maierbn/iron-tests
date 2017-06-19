@@ -33,14 +33,25 @@
 
 # temporary LaTex files
 *.aux
+*.bbl
+*.blg
+doc/*.aux
 *.DS_Store
 *.dvi
 *-eps-converted-to.pdf
+*.fdb_latexmk
+*.fls
 *.lof
 *.log
 *.lot
 *.out
 *.synctex.gz
+
+# simulation data
+examples/example-*/*.exnode
+examples/example-*/*.exelem
+examples/example-*/*.diag
+examples/example-*/*.out
 
 # Misc
 *~
