@@ -1,6 +1,6 @@
 # import node and element data
-gfx read nodes data/Example.part0.exnode
-gfx read elements data/Example.part0.exelem
+gfx read nodes results/Example.part0.exnode
+gfx read elements results/Example.part0.exelem
 
 # compute element faces
 gfx define faces

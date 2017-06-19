@@ -90,7 +90,7 @@ PROGRAM LAPLACEEXAMPLE
 
   INTEGER(CMISSIntg) :: NUMBER_OF_ARGUMENTS,ARGUMENT_LENGTH,STATUS
   INTEGER(CMISSIntg) :: NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS,NUMBER_GLOBAL_Z_ELEMENTS, &
-    & INTERPOLATION_TYPE,NUMBER_OF_GAUSS_XI
+    & INTERPOLATION_TYPE,NUMBER_OF_GAUSS_XI,SOLVER_TYPE
   CHARACTER(LEN=255) :: COMMAND_ARGUMENT,Filename
 
   !CMISS variables
@@ -155,12 +155,17 @@ PROGRAM LAPLACEEXAMPLE
     CALL GET_COMMAND_ARGUMENT(4,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 4.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) INTERPOLATION_TYPE
-    IF(INTERPOLATION_TYPE<=0) CALL HANDLE_ERROR("Invalid Interpolation specification.")
+    IF(INTERPOLATION_TYPE<=0) CALL HANDLE_ERROR("Invalid interpolation specification.")
+    CALL GET_COMMAND_ARGUMENT(5,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 5.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) SOLVER_TYPE
+    IF((SOLVER_TYPE<0).OR.(SOLVER_TYPE>1)) CALL HANDLE_ERROR("Invalid solver type specification.")
   ELSE
     !If there are not enough arguments default the problem specification 
     NUMBER_GLOBAL_X_ELEMENTS=4
     NUMBER_GLOBAL_Y_ELEMENTS=2
     NUMBER_GLOBAL_Z_ELEMENTS=2
+    SOLVER_TYPE=0
 !    INTERPOLATION_TYPE=1
     
     INTERPOLATION_TYPE=CMFE_BASIS_LINEAR_LAGRANGE_INTERPOLATION
@@ -358,17 +363,15 @@ PROGRAM LAPLACEEXAMPLE
   !CALL cmfe_Solver_OutputTypeSet(Solver,CMFE_SOLVER_SOLVER_OUTPUT,Err)
   !CALL cmfe_Solver_OutputTypeSet(Solver,CMFE_SOLVER_MATRIX_OUTPUT,Err)
   
-!  CALL cmfe_Solver_LinearTypeSet(Solver,CMFE_SOLVER_LINEAR_ITERATIVE_SOLVE_TYPE,Err)
-!  CALL cmfe_Solver_LinearIterativeAbsoluteToleranceSet(Solver,1.0E-12_CMISSRP,Err)
-!  CALL cmfe_Solver_LinearIterativeRelativeToleranceSet(Solver,1.0E-12_CMISSRP,Err)
-
-  CALL cmfe_Solver_LinearTypeSet(Solver,CMFE_SOLVER_LINEAR_DIRECT_SOLVE_TYPE,Err)
+  IF(SOLVER_TYPE==0) THEN
+    CALL cmfe_Solver_LinearTypeSet(Solver,CMFE_SOLVER_LINEAR_DIRECT_SOLVE_TYPE,Err)
+    CALL cmfe_Solver_LibraryTypeSet(Solver,CMFE_SOLVER_MUMPS_LIBRARY,Err)
+  ELSE
+    CALL cmfe_Solver_LinearTypeSet(Solver,CMFE_SOLVER_LINEAR_ITERATIVE_SOLVE_TYPE,Err)
+    CALL cmfe_Solver_LinearIterativeAbsoluteToleranceSet(Solver,1.0E-12_CMISSRP,Err)
+!    CALL cmfe_Solver_LinearIterativeRelativeToleranceSet(Solver,1.0E-12_CMISSRP,Err)
+  ENDIF
   
-  !CALL cmfe_Solver_LinearTypeSet(Solver,CMFE_SOLVER_LINEAR_DIRECT_SOLVE_TYPE,Err)
-  !CALL cmfe_Solver_LibraryTypeSet(Solver,CMFE_SOLVER_MUMPS_LIBRARY,Err)
-  !CALL cmfe_Solver_LibraryTypeSet(Solver,CMFE_SOLVER_LAPACK_LIBRARY,Err)
-  !CALL cmfe_Solver_LibraryTypeSet(Solver,CMFE_SOLVER_SUPERLU_LIBRARY,Err)
-  !CALL cmfe_Solver_LibraryTypeSet(Solver,CMFE_SOLVER_PASTIX_LIBRARY,Err)
   !Finish the creation of the problem solver
   CALL cmfe_Problem_SolversCreateFinish(Problem,Err)
 
@@ -414,8 +417,8 @@ PROGRAM LAPLACEEXAMPLE
   !Export results
   CALL cmfe_Fields_Initialise(Fields,Err)
   CALL cmfe_Fields_Create(Region,Fields,Err)
-  CALL cmfe_Fields_NodesExport(Fields,"data/Example","FORTRAN",Err)
-  CALL cmfe_Fields_ElementsExport(Fields,"data/Example","FORTRAN",Err)
+  CALL cmfe_Fields_NodesExport(Fields,"results/Example","FORTRAN",Err)
+  CALL cmfe_Fields_ElementsExport(Fields,"results/Example","FORTRAN",Err)
   CALL cmfe_Fields_Finalise(Fields,Err)
   
   !Finialise CMISS
