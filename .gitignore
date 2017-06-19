@@ -30,3 +30,17 @@
 *.exe
 *.out
 *.app
+
+# temporary LaTex files
+*.aux
+*.DS_Store
+*.dvi
+*-eps-converted-to.pdf
+*.lof
+*.log
+*.lot
+*.out
+*.synctex.gz
+
+# Misc
+*~
