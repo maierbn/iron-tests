@@ -1,5 +1,5 @@
 # Add example executable
-add_executable(example-0001 src/FortranExample.f90)
+add_executable(example src/FortranExample.f90)
 
 # Turn on Fortran preprocessing (#include directives)
 if (MSVC)
@@ -7,7 +7,7 @@ if (MSVC)
 else()
     set(PROC_OPT "-cpp")
 endif()
-target_compile_options(example-0001 PRIVATE ${PROC_OPT})
+target_compile_options(example PRIVATE ${PROC_OPT})
 
 # Link to opencmiss
 # -----------------
@@ -24,11 +24,11 @@ target_compile_options(example-0001 PRIVATE ${PROC_OPT})
 #     target_link_libraries(${EXAMPLE_BINARY} PRIVATE petsc)
 #
 # All the OpenCMISS dependencies provide a target you can link against corresponding to the (lowercase) component name.
-target_link_libraries(example-0001 PRIVATE opencmiss)
+target_link_libraries(example PRIVATE opencmiss)
 
 # Add a simple test that runs the executable
-add_test(NAME Example-0001 COMMAND example-0001)
-add_opencmiss_environment(Example-0001)
+add_test(NAME Example COMMAND example)
+add_opencmiss_environment(Example)
 
 ###################
 # Developer notice!

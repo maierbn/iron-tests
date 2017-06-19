@@ -46,6 +46,7 @@ doc/*.aux
 *.lot
 *.out
 *.synctex.gz
+*.toc
 
 # simulation data
 examples/example-*/*.exnode

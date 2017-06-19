@@ -1,0 +1,8 @@
+debug/
+release/
+doc/*.aux
+*-eps-converted-to.pdf
+*.log
+*.out
+*.diag
+*~

@@ -11,4 +11,4 @@ run-tests:
 	cd examples && bash run_examples.sh
 
 clean:
-	rm -rf *aux doc/*aux *.bbl *.blg *.fdb_latexmk  *.fls *.lof *.log *.lot *.out *.toc *-eps-converted-to.pdf
+	rm -rf *aux doc/*aux *.bbl *.blg *.fdb_latexmk  *.fls *.lof *.log *.lot *.out *.toc *-eps-converted-to.pdf examples/example-*/doc/*.aux

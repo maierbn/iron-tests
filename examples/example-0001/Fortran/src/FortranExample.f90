@@ -158,9 +158,9 @@ PROGRAM LAPLACEEXAMPLE
     IF(INTERPOLATION_TYPE<=0) CALL HANDLE_ERROR("Invalid Interpolation specification.")
   ELSE
     !If there are not enough arguments default the problem specification 
-    NUMBER_GLOBAL_X_ELEMENTS=1
-    NUMBER_GLOBAL_Y_ELEMENTS=3
-    NUMBER_GLOBAL_Z_ELEMENTS=1
+    NUMBER_GLOBAL_X_ELEMENTS=4
+    NUMBER_GLOBAL_Y_ELEMENTS=2
+    NUMBER_GLOBAL_Z_ELEMENTS=2
 !    INTERPOLATION_TYPE=1
     
     INTERPOLATION_TYPE=CMFE_BASIS_LINEAR_LAGRANGE_INTERPOLATION
@@ -203,7 +203,7 @@ PROGRAM LAPLACEEXAMPLE
   !Start the creation of the region
   CALL cmfe_Region_Initialise(Region,Err)
   CALL cmfe_Region_CreateStart(RegionUserNumber,WorldRegion,Region,Err)
-  CALL cmfe_Region_LabelSet(Region,"LaplaceRegion",Err)
+  CALL cmfe_Region_LabelSet(Region,"Region",Err)
   !Set the regions coordinate system to the 2D RC coordinate system that we have created
   CALL cmfe_Region_CoordinateSystemSet(Region,CoordinateSystem,Err)
   !Finish the creation of the region
@@ -283,6 +283,7 @@ PROGRAM LAPLACEEXAMPLE
   !Start to create a default (geometric) field on the region
   CALL cmfe_Field_Initialise(GeometricField,Err)
   CALL cmfe_Field_CreateStart(GeometricFieldUserNumber,Region,GeometricField,Err)
+  CALL cmfe_Field_VariableLabelSet(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,"Geometry",Err)
   !Set the decomposition to use
   CALL cmfe_Field_MeshDecompositionSet(GeometricField,Decomposition,Err)
   !Set the domain to be used by the field components.
@@ -309,6 +310,8 @@ PROGRAM LAPLACEEXAMPLE
   !Create the equations set dependent field variables
   CALL cmfe_Field_Initialise(DependentField,Err)
   CALL cmfe_EquationsSet_DependentCreateStart(EquationsSet,DependentFieldUserNumber,DependentField,Err)
+  CALL cmfe_Field_VariableLabelSet(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,"ScalarField",Err)
+  CALL cmfe_Field_VariableLabelSet(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE,"ScalarField (derivative)",Err)
   !Set the DOFs to be contiguous across components
   CALL cmfe_Field_DOFOrderTypeSet(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_SEPARATED_COMPONENT_DOF_ORDER,Err)
   CALL cmfe_Field_DOFOrderTypeSet(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE,CMFE_FIELD_SEPARATED_COMPONENT_DOF_ORDER,Err)
@@ -411,8 +414,8 @@ PROGRAM LAPLACEEXAMPLE
   !Export results
   CALL cmfe_Fields_Initialise(Fields,Err)
   CALL cmfe_Fields_Create(Region,Fields,Err)
-  CALL cmfe_Fields_NodesExport(Fields,"Laplace","FORTRAN",Err)
-  CALL cmfe_Fields_ElementsExport(Fields,"Laplace","FORTRAN",Err)
+  CALL cmfe_Fields_NodesExport(Fields,"data/Example","FORTRAN",Err)
+  CALL cmfe_Fields_ElementsExport(Fields,"data/Example","FORTRAN",Err)
   CALL cmfe_Fields_Finalise(Fields,Err)
   
   !Finialise CMISS

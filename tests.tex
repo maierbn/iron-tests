@@ -33,6 +33,7 @@ BCOR5mm, % Binding correction
 \hyphenation{Fortran hy-phen-ation OpenCMISSLocalConfig} % Specify custom hyphenation points in words with dashes where you would like hyphenation to occur, or alternatively, don't put any dashes in a word to stop hyphenation altogether
 
 \usepackage{datetime}
+\usepackage{rotating}
 
 \newcommand\highlightcolor{black}
 \newcommand\opencmiss{\textit{OpenCMISS}}
@@ -54,11 +55,21 @@ BCOR5mm, % Binding correction
 %	TITLE AND AUTHOR(S)
 %----------------------------------------------------------------------------------------
 
-\title{\normalfont{Manual for \opencmiss\ developers at University of Stuttgart}} % The article title
+\title{\normalfont{\iron\ examples and tests used by \opencmiss\ developers at University of Stuttgart, Germany}} % The article title
 
 %\author{\spacedlowsmallcaps{Andreas Hessenthaler* \& James Smith\textsuperscript{1}}} % The article author(s) - author affiliations need to be specified in the AUTHOR AFFILIATIONS block
 
-\author{\spacedlowsmallcaps{Andreas Hessenthaler*}} % The article author(s) - author affiliations need to be specified in the AUTHOR AFFILIATIONS block
+\author{% NOTE : Surnames in alphabetical order
+Ekin Altan\footnote{Institute of Applied Mechanics (CE), University of Stuttgart, Pfaffenwaldring 7, 70569 Stuttgart, Germany},
+Christian Bleiler\footnotemark[1],
+Andreas Hessenthaler\footnotemark[1],\\
+Thomas Klotz\footnotemark[1],
+Aaron Kr\"amer\footnote{Institute for Parallel and Distributed Systems, University of Stuttgart, Universit\"atsstra\ss e 38, 70569 Stuttgart, Germany},
+Benjamin Maier\footnote{Lehrstuhl Mathematische Methoden f\"ur komplexe Simulation der Naturwissenschaft und Technik, University of Stuttgart, Allmandring 5b, 70569 Stuttgart, Germany},\\
+Sergio Morales\footnotemark[1],
+Mylena Mordhorst\footnotemark[1],
+Harry Saini\footnotemark[1]        
+}
 
 \usdate
 \date{\color{gray}\large \today \\ \currenttime} % An optional date to appear under the author(s)
@@ -88,13 +99,6 @@ BCOR5mm, % Binding correction
 \listoftables               % Print the list of tables
 %===============================================================================
 %===============================================================================
-%	AUTHOR AFFILIATIONS
-%===============================================================================
-%===============================================================================
-{\let\thefootnote\relax\footnotetext{* \textit{Institute of Applied Mechanics
-(CE), University of Stuttgart, Germany}}}
-%===============================================================================
-%===============================================================================
 %	INTRODUCTION
 %===============================================================================
 %===============================================================================
@@ -105,15 +109,58 @@ BCOR5mm, % Binding correction
 %
 %===============================================================================
 %===============================================================================
+%	PROGRESS
+%===============================================================================
+%===============================================================================
+%
+\input{doc/progress}
+%
+%===============================================================================
+%===============================================================================
 %	Examples
 %===============================================================================
 %===============================================================================
 %
 \clearpage
 %
-\section{Laplace equation}
+\section{Diffusion equation}
+%
+\subsection{Equation in general form}
+%
+\begin{equation}
+    \partial_t u + \nabla \cdot \nabla u = f
+\end{equation}
 %
 \input{examples/example-0001/doc/example}
+%
+%\input{examples/example-0002-a/doc/example}
+%
+%\input{examples/example-0002-b/doc/example}
+%
+%===============================================================================
+%
+\clearpage
+%
+\section{Linear elasticity}
+%
+%\input{examples/example-0101/doc/example}
+%
+%===============================================================================
+%
+\clearpage
+%
+\section{Finite elasticity}
+%
+%\input{examples/example-0201/doc/example}
+%
+%===============================================================================
+%
+\clearpage
+%
+\section{Navier-Stokes flow}
+%
+%\input{examples/example-0301/doc/example}
+%
 %
 %===============================================================================
 %	BIBLIOGRAPHY
