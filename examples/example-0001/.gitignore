@@ -6,3 +6,5 @@ doc/*.aux
 *.out
 *.diag
 *~
+results/results.summary
+results/failed.tests

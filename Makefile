@@ -3,7 +3,7 @@ default:
 	make run-tests-release
 	make collect-results
 	make create-figures
-	make tex
+	make latexmk
 
 tex:
 	xelatex tests

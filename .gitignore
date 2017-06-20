@@ -56,3 +56,5 @@ examples/example-*/*.out
 
 # Misc
 *~
+failed.tests
+results.summary
