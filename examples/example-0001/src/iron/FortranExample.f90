@@ -163,9 +163,9 @@ PROGRAM LAPLACEEXAMPLE
     IF((SOLVER_TYPE<0).OR.(SOLVER_TYPE>1)) CALL HANDLE_ERROR("Invalid solver type specification.")
   ELSE
     !If there are not enough arguments default the problem specification 
-    NUMBER_GLOBAL_X_ELEMENTS=4
-    NUMBER_GLOBAL_Y_ELEMENTS=2
-    NUMBER_GLOBAL_Z_ELEMENTS=2
+    NUMBER_GLOBAL_X_ELEMENTS=2
+    NUMBER_GLOBAL_Y_ELEMENTS=1
+    NUMBER_GLOBAL_Z_ELEMENTS=1
     SOLVER_TYPE=0
 !    INTERPOLATION_TYPE=1
     
@@ -182,7 +182,7 @@ PROGRAM LAPLACEEXAMPLE
 
   CALL cmfe_RandomSeedsSet(9999,Err)
   
-  CALL cmfe_DiagnosticsSetOn(CMFE_IN_DIAG_TYPE,[1,2,3,4,5],"Diagnostics",["DOMAIN_MAPPINGS_LOCAL_FROM_GLOBAL_CALCULATE"],Err)
+!  CALL cmfe_DiagnosticsSetOn(CMFE_IN_DIAG_TYPE,[1,2,3,4,5],"Diagnostics",["DOMAIN_MAPPINGS_LOCAL_FROM_GLOBAL_CALCULATE"],Err)
 
   WRITE(Filename,'(A,"_",I0,"x",I0,"x",I0,"_",I0)') "Laplace",NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS, &
     & NUMBER_GLOBAL_Z_ELEMENTS,INTERPOLATION_TYPE
@@ -370,7 +370,7 @@ PROGRAM LAPLACEEXAMPLE
   ELSE
     CALL cmfe_Solver_LinearTypeSet(Solver,CMFE_SOLVER_LINEAR_ITERATIVE_SOLVE_TYPE,Err)
     CALL cmfe_Solver_LinearIterativeAbsoluteToleranceSet(Solver,1.0E-12_CMISSRP,Err)
-!    CALL cmfe_Solver_LinearIterativeRelativeToleranceSet(Solver,1.0E-12_CMISSRP,Err)
+    CALL cmfe_Solver_LinearIterativeRelativeToleranceSet(Solver,1.0E-12_CMISSRP,Err)
   ENDIF
   
   !Finish the creation of the problem solver
@@ -418,8 +418,13 @@ PROGRAM LAPLACEEXAMPLE
   !Export results
   CALL cmfe_Fields_Initialise(Fields,Err)
   CALL cmfe_Fields_Create(Region,Fields,Err)
-  CALL cmfe_Fields_NodesExport(Fields,"results/current_run/Example","FORTRAN",Err)
-  CALL cmfe_Fields_ElementsExport(Fields,"results/current_run/Example","FORTRAN",Err)
+  WRITE(filename, "(A28,I1,A1,I1,A1,I1,A2,I1,A2,I1,A8)") &
+    & "results/current_run/l2x1x1_n", &
+    & NUMBER_GLOBAL_X_ELEMENTS,"x",NUMBER_GLOBAL_Y_ELEMENTS,"x",NUMBER_GLOBAL_Z_ELEMENTS, &
+    & "_i",INTERPOLATION_TYPE,"_s",SOLVER_TYPE,"/Example"
+  filename=trim(filename)
+  CALL cmfe_Fields_NodesExport(Fields,filename,"FORTRAN",Err)
+  CALL cmfe_Fields_ElementsExport(Fields,filename,"FORTRAN",Err)
   CALL cmfe_Fields_Finalise(Fields,Err)
   
   !Finialise CMISS

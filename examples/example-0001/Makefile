@@ -1,4 +1,6 @@
 default:
+	make clean
+	mkdir -p results/current_run
 	make debug
 	make release
 	make compare
@@ -11,10 +13,14 @@ release:
 	bash run_example.sh release
 
 compare:
-	bash results/compare_iron_abaqus.sh
+	python results/compare_solutions.py
 
 visualize:
 	cmgui results/cmgui.com
 
 clean:
-	rm -rf *.diag *.log *.aux *.out debug/ release/ results/current_run/*.exnode results/current_run/*.exelem doc/figures/*-eps-converted-to.pdf
+	rm -rf *.diag *.log *.aux *.out debug/ release/
+	rm -rf results/current_run
+	rm -rf results/failed.tests results/results.summary
+	rm -f  failed.tests results.summary
+	rm -rf doc/figures/*-eps-converted-to.pdf

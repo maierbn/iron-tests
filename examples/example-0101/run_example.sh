@@ -12,4 +12,4 @@ cmake -DCMAKE_BUILD_TYPE=$folder -DOPENCMISS_BUILD_TYPE=$folder ..
 make
 cd ..
 echo "  running $folder"
-./$folder/src/example
+mkdir -p results/current_run && ./$folder/src/example
