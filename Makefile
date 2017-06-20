@@ -1,10 +1,17 @@
 default:
+	make clean
+	make run-tests-release
+	make collect-results
+	make create-figures
+	make tex
+
+tex:
 	xelatex tests
 	bibtex  tests
 	xelatex tests
 	xelatex tests
 
-tex:
+latexmk:
 	latexmk -pdf -pvc tests
 
 run-tests-debug:
@@ -16,9 +23,12 @@ run-tests-release:
 collect-results:
 	cd examples; bash collect_results.sh
 
+create-figures:
+	cd examples; bash create_figures.sh
+
 clean:
 	rm -rf *aux doc/*aux *.bbl *.blg *.fdb_latexmk  *.fls *.lof *.log *.lot *.out *.toc
-	rm -rf *-eps-converted-to.pdf
+	rm -rf examples/example-*/doc/figures/*-eps-converted-to.pdf
 	rm -rf examples/example-*/doc/*.aux
 	rm -rf examples/example-*/*.out
 	rm -rf examples/example-*/*.diag

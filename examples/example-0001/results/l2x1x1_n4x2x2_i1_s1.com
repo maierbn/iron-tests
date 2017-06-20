@@ -1,6 +1,6 @@
 # import node and element data
-gfx read nodes results/current_run/Example.part0.exnode
-gfx read elements results/current_run/Example.part0.exelem
+gfx read nodes results/current_run/l2x1x1_n4x2x2_i1_s1/Example.part0.exnode
+gfx read elements results/current_run/l2x1x1_n4x2x2_i1_s1//Example.part0.exelem
 
 # compute element faces
 gfx define faces
@@ -38,4 +38,4 @@ gfx modify g_element "/" point glyph colour_bar general size "1*1*1" centre 0,0,
 # open scene editor
 gfx edit scene
 
-gfx print postscript file doc/figures/current_run.eps
+gfx print postscript file doc/figures/current_run_l2x1x1_n4x2x2_i1_s1.eps

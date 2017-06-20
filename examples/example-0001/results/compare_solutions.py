@@ -139,6 +139,8 @@ for s in np.arange(0, 2, 1):
                 status = filename+"       | CHeart   - Iron |_2 = "+str(l2diff_ci) \
                     +"       | Iron_ref - Iron |_2 = "+str(l2diff_i0i)
                 print status
+                if (NumberOfFailedTests == 0):
+                    failedtests_file.write("Failed tests:\n")
                 failedtests_file.write(status)
                 NumberOfFailedTests += 1
             elif (l2diff_ci > tolu):
@@ -149,6 +151,8 @@ for s in np.arange(0, 2, 1):
                 status = filename+"       | Iron_ref - Iron |_2 = "+str(l2diff_i0i)
                 failedtests_file.write(status)
                 NumberOfFailedTests += 1
+if (NumberOfFailedTests == 0):
+    failedtests_file.write("No failed tests.\n")
 failedtests_file.close()
 f       = open("results.summary", "w")
 status  = "Passed tests: "+str(NumberOfTests-NumberOfFailedTests)+" / "+str(NumberOfTests)+"\n"

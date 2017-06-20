@@ -13,10 +13,10 @@ release:
 	bash run_example.sh release
 
 compare:
-	python results/compare_solutions.py
+	cd results; python compare_solutions.py
 
-visualize:
-	cmgui results/cmgui.com
+create-figures:
+	cd examples; bash create_figures.sh
 
 clean:
 	rm -rf *.diag *.log *.aux *.out debug/ release/
