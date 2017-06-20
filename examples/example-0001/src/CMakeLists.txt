@@ -1,5 +1,5 @@
 # Add example executable
-add_executable(example src/FortranExample.f90)
+add_executable(example iron/FortranExample.f90)
 
 # Turn on Fortran preprocessing (#include directives)
 if (MSVC)

@@ -137,13 +137,14 @@ PROGRAM LAPLACEEXAMPLE
 #endif
 
   NUMBER_OF_ARGUMENTS = COMMAND_ARGUMENT_COUNT()
-  IF(NUMBER_OF_ARGUMENTS >= 4) THEN
+  IF(NUMBER_OF_ARGUMENTS >= 5) THEN
     !If we have enough arguments then use the first four for setting up the problem. The subsequent arguments may be used to
     !pass flags to, say, PETSc.
     CALL GET_COMMAND_ARGUMENT(1,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 1.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_X_ELEMENTS
     IF(NUMBER_GLOBAL_X_ELEMENTS<=0) CALL HANDLE_ERROR("Invalid number of X elements.")
+    
     CALL GET_COMMAND_ARGUMENT(2,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 2.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_Y_ELEMENTS
@@ -417,8 +418,8 @@ PROGRAM LAPLACEEXAMPLE
   !Export results
   CALL cmfe_Fields_Initialise(Fields,Err)
   CALL cmfe_Fields_Create(Region,Fields,Err)
-  CALL cmfe_Fields_NodesExport(Fields,"results/Example","FORTRAN",Err)
-  CALL cmfe_Fields_ElementsExport(Fields,"results/Example","FORTRAN",Err)
+  CALL cmfe_Fields_NodesExport(Fields,"results/current_run/Example","FORTRAN",Err)
+  CALL cmfe_Fields_ElementsExport(Fields,"results/current_run/Example","FORTRAN",Err)
   CALL cmfe_Fields_Finalise(Fields,Err)
   
   !Finialise CMISS

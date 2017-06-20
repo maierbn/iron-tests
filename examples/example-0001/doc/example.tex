@@ -1,16 +1,18 @@
 %===============================================================================
 %===============================================================================
 %
+\clearpage
+%
 \subsection{Example-0001}
 %
 %===============================================================================
 %
-\subsubsection{Model}
+\subsubsection{Mathematical model}
 %
 We solve the following equation,
 %
 \begin{align}
-    \nabla \cdot \nabla u = 0 & &&\Omega \in [0, 2] \times [0, 1] \times [0, 1],
+    \nabla \cdot \nabla u = 0 & &&\Omega = [0, 2] \times [0, 1] \times [0, 1],
 \end{align}
 %
 with boundary conditions
@@ -24,14 +26,54 @@ No material parameters to specify.
 %
 %===============================================================================
 %
+\subsubsection{Computational model}
+%
+\begin{itemize}
+    \item{Length, width, height}
+    \item{Direct/iterative solver}
+    \item{Generated/user mesh}
+    \item{Number of elements}
+    \item{Interpolation order}
+    \item{Number of solver steps (time steps, load steps)}
+\end{itemize}
+%
+%===============================================================================
+%
 \subsubsection{Results}
 %
 \begin{figure}[h!]
     \centering 
-    \includegraphics[width=\columnwidth]{examples/example-0001/figures/example.png} 
-    \caption{Results.}
-    \label{example-0001-fig}
+    \includegraphics[width=\columnwidth]{examples/example-0001/doc/figures/analytical_solution.eps} 
+    \caption{Results, analytical solution.}
+    \label{example-0001-analytical-solution-fig}
 \end{figure}
+%
+\begin{figure}[h!]
+    \centering 
+    \includegraphics[width=\columnwidth]{examples/example-0001/doc/figures/abaqus_reference.eps} 
+    \caption{Results, Abaqus reference.}
+    \label{example-0001-abaqus-reference-fig}
+\end{figure}
+%
+\begin{figure}[h!]
+    \centering 
+    \includegraphics[width=\columnwidth]{examples/example-0001/doc/figures/iron_reference.eps} 
+    \caption{Results, iron reference.}
+    \label{example-0001-iron-reference-fig}
+\end{figure}
+%
+\begin{figure}[h!]
+    \centering 
+    \includegraphics[width=\columnwidth]{examples/example-0001/doc/figures/current_run.eps} 
+    \caption{Results, current run.}
+    \label{example-0001-current-run-fig}
+\end{figure}
+%
+%===============================================================================
+%
+\subsubsection{Validation}
+%
+CHeart rev.\ 6328, Abaqus 2017, analytical reference solution, whatever...
 %
 %===============================================================================
 %===============================================================================

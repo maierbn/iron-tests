@@ -345,23 +345,23 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
     CALL cmfe_Problem_Solve(Problem,Err)
     ! Export solution
     IF (TIMESTEP.LE.9) THEN
-      WRITE(filename, "(A16,I1)") "results/Example_",TIMESTEP
+      WRITE(filename, "(A28,I1)") "results/current_run/Example_",TIMESTEP
       filename=trim(filename)
     ELSEIF (TIMESTEP.LE.99) THEN
-      WRITE(filename, "(A16,I2)") "results/Example_",TIMESTEP
+      WRITE(filename, "(A28,I2)") "results/current_run/Example_",TIMESTEP
       filename=trim(filename)
     ELSEIF (TIMESTEP.LE.999) THEN
-      WRITE(filename, "(A16,I3)") "results/Example_",TIMESTEP
+      WRITE(filename, "(A28,I3)") "results/current_run/Example_",TIMESTEP
       filename=trim(filename)
     ELSE
-      WRITE(filename, "(A16,I4)") "results/Example_",TIMESTEP
+      WRITE(filename, "(A28,I4)") "results/current_run/Example_",TIMESTEP
       filename=trim(filename)
     ENDIF
     CALL cmfe_Fields_NodesExport(Fields,filename,"FORTRAN",Err)
   END DO
 
   ! Export final solution and topology
-  CALL cmfe_Fields_ElementsExport(Fields,"results/Example","FORTRAN",Err)
+  CALL cmfe_Fields_ElementsExport(Fields,"results/current_run/Example","FORTRAN",Err)
   CALL cmfe_Fields_Finalise(Fields,Err)
 
   ! Finalise

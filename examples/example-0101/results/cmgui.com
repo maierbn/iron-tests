@@ -1,14 +1,14 @@
 #Read in the sequence of nodal positions.
 for $i (1..5)
   {
-	 $filename = sprintf("results/Example_%d.part0.exnode", $i);
+	 $filename = sprintf("results/current_run/Example_%d.part0.exnode", $i);
 	 
 	 print "Reading $filename time $i\n";
 	 gfx read node "$filename" time $i;
   }
 
 #Read in the element description
-gfx read elements results/Example.part0.exelem;
+gfx read elements results/current_run/Example.part0.exelem;
 
 gfx define field xx add fields Displacement.1 Undeformed.x
 gfx define field yy add fields Displacement.2 Undeformed.y
@@ -68,5 +68,8 @@ gfx modify window 1 layout 2d ortho_axes z -y eye_spacing 0.25 width 878 height 
 
 gfx modify window 1 view parallel eye_point 80 60 407.98 interest_point 80 60 0 up_vector -0 1 -0 view_angle 40 near_clipping_plane 4.0798 far_clipping_plane 1457.98 relative_viewport ndc_placement -1 1 2 2 viewport_coordinates 0 0 1 1;
 
-gfx modify window 1 set transform_tool current_pane 1 std_view_angle 40 normal_lines no_antialias depth_of_field 0.0 fast_transparency blend_normal;
+gfx modify window 1 set transform_tool current_pane 1 std_view_angle 40 normal_lines no_antialias depth_of_field 0.0 fast_transparency blend_normal
 
+gfx set time 5
+
+gfx print postscript file doc/figures/current_run.eps
