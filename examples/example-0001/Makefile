@@ -4,7 +4,7 @@ default:
 	make debug
 	make release
 	make compare
-	make visualize
+	make create-figures
 
 debug:
 	bash run_example.sh debug
@@ -13,7 +13,7 @@ release:
 	bash run_example.sh release
 
 compare:
-	cd results; python compare_solutions.py
+	cd results; rm -f failed.tests results.summary; python compare_solutions.py
 
 create-figures:
 	cd examples; bash create_figures.sh

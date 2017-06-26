@@ -1,4 +1,9 @@
-# patch IDs
+# patch IDs  -- 2D
+patch_x0 = 1
+patch_x1 = 2
+patch_y0 = 3
+patch_y1 = 4
+# patch IDs  -- 3D
 patch_x0 = 1
 patch_x1 = 2
 patch_y0 = 3
