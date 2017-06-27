@@ -251,10 +251,10 @@ PROGRAM MONODOMAINEXAMPLE
     ! BASIS_CUBIC_SIMPLEX_INTERPOLATION=9 !<Cubic Simplex interpolation specification \see BASIS_ROUTINES_InterpolationSpecifications,BASIS_ROUTINES
     PDE_TIME_STEP = 0.05_CMISSRP
     ODE_TIME_STEP = 0.001_CMISSRP
-    TIME_STOP=1.00
+    TIME_STOP=3.00
     OUTPUT_FREQUENCY=1
     CellmlFile="hodgkin_huxley_1952.cellml"
-    SLOW_TWITCH=.TRUE.
+    SLOW_TWITCH=.FALSE.
   ENDIF
 
   ! determine file name for output files
@@ -477,7 +477,7 @@ PROGRAM MONODOMAINEXAMPLE
 
   !todo - get vm initialial value.
   CALL cmfe_Field_ComponentValuesInitialise(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1, &
-    & 75.0_CMISSRP,Err)
+    & -75.0_CMISSRP,Err)
   
   !Start the creation of the CellML models field
   CALL cmfe_Field_Initialise(CellMLModelsField,Err)
