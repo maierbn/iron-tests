@@ -1,5 +1,5 @@
 !> \file
-!> \author Chris Bradley
+!> \author MM
 !> \brief This is an example program to solve a Laplace equation using OpenCMISS calls.
 !>
 !> \section LICENSE
@@ -39,14 +39,14 @@
 !> the terms of any one of the MPL, the GPL or the LGPL.
 !>
 
-!> \example ClassicalField/Laplace/Laplace/Fortran/src/LaplaceExample.f90
-!! Example program to solve a Laplace equation using OpenCMISS calls.
-!! \htmlinclude ClassicalField/Laplace/Laplace/history.html
+!> \example ClassicalField/Laplace/GeneralisedLaplace/Fortran/src/FortranExample.f90
+!! Example program to solve a Generalised Laplace equation using OpenCMISS calls.
+!! \htmlinclude ClassicalField/Laplace/GeneralisedLaplace/history.html
 !!
 !<
 
 !> Main program
-PROGRAM LAPLACEEXAMPLE
+PROGRAM GENERALISEDLAPLACEEXAMPLE
 
   USE OpenCMISS
   USE OpenCMISS_Iron
@@ -75,11 +75,21 @@ PROGRAM LAPLACEEXAMPLE
   INTEGER(CMISSIntg), PARAMETER :: MeshUserNumber=5
   INTEGER(CMISSIntg), PARAMETER :: DecompositionUserNumber=6
   INTEGER(CMISSIntg), PARAMETER :: GeometricFieldUserNumber=7
+
+  INTEGER(CMISSIntg), PARAMETER :: FibreFieldUserNumber=12
+  INTEGER(CMISSIntg), PARAMETER :: MaterialsFieldUserNumber=13
+
+  INTEGER(CMISSIntg), PARAMETER :: FibreFieldNumberOfVariables=1
+
   INTEGER(CMISSIntg), PARAMETER :: EquationsSetFieldUserNumber=8
   INTEGER(CMISSIntg), PARAMETER :: DependentFieldUserNumber=9
   INTEGER(CMISSIntg), PARAMETER :: EquationsSetUserNumber=10
   INTEGER(CMISSIntg), PARAMETER :: ProblemUserNumber=11
- 
+
+  INTEGER(CMISSIntg), PARAMETER :: DerivativeUserNumber=1
+
+  REAL(CMISSRP), PARAMETER :: PI=4.0_CMISSRP*DATAN(1.0_CMISSRP)
+
   !Program types
   
   !Program variables
@@ -87,8 +97,14 @@ PROGRAM LAPLACEEXAMPLE
   INTEGER(CMISSIntg)    :: NUMBER_OF_ARGUMENTS,ARGUMENT_LENGTH,STATUS
   INTEGER(CMISSIntg)    :: NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS,NUMBER_GLOBAL_Z_ELEMENTS
   INTEGER(CMISSIntg)    :: INTERPOLATION_TYPE,NUMBER_OF_GAUSS_XI,SOLVER_TYPE
+
+  INTEGER(CMISSIntg)    :: node_idx,component_idx,TotalNumberOfNodes
+
+  INTEGER(CMISSIntg)    :: FibreFieldNumberOfComponents
+
   CHARACTER(LEN=255)    :: COMMAND_ARGUMENT,Filename
   REAL(CMISSRP)         :: WIDTH,HEIGHT,LENGTH,SIGMA11,SIGMA22,SIGMA33
+  REAL(CMISSRP)         :: FibreFieldAngles(3),ANGLE1,ANGLE2,ANGLE3
 
   !CMISS variables
 
@@ -98,7 +114,7 @@ PROGRAM LAPLACEEXAMPLE
   TYPE(cmfe_DecompositionType) :: Decomposition
   TYPE(cmfe_EquationsType) :: Equations
   TYPE(cmfe_EquationsSetType) :: EquationsSet
-  TYPE(cmfe_FieldType) :: GeometricField,EquationsSetField,DependentField
+  TYPE(cmfe_FieldType) :: GeometricField,EquationsSetField,DependentField,FibreField,MaterialsField
   TYPE(cmfe_FieldsType) :: Fields
   TYPE(cmfe_GeneratedMeshType) :: GeneratedMesh  
   TYPE(cmfe_MeshType) :: Mesh
@@ -119,7 +135,7 @@ PROGRAM LAPLACEEXAMPLE
   INTEGER(CMISSIntg) :: NumberOfComputationalNodes,ComputationalNodeNumber
   INTEGER(CMISSIntg) :: EquationsSetIndex
   INTEGER(CMISSIntg) :: FirstNodeNumber,LastNodeNumber
-  INTEGER(CMISSIntg) :: FirstNodeDomain,LastNodeDomain
+  INTEGER(CMISSIntg) :: FirstNodeDomain,LastNodeDomain,NodeDomain
   INTEGER(CMISSIntg) :: Err
   
 #ifdef WIN32
@@ -134,7 +150,7 @@ PROGRAM LAPLACEEXAMPLE
 #endif
 
   NUMBER_OF_ARGUMENTS = COMMAND_ARGUMENT_COUNT()
-  IF(NUMBER_OF_ARGUMENTS >= 8) THEN
+  IF(NUMBER_OF_ARGUMENTS >= 14) THEN
     ! get extents of spatial domain
     CALL GET_COMMAND_ARGUMENT(1,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 1.")
@@ -180,13 +196,23 @@ PROGRAM LAPLACEEXAMPLE
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 10.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) SIGMA22
     ! sigma_33
-    IF(NUMBER_GLOBAL_Z_ELEMENTS>0) THEN
-      CALL GET_COMMAND_ARGUMENT(11,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
-      IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 11.")
-      READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) SIGMA33
-    ENDIF
+    CALL GET_COMMAND_ARGUMENT(11,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 11.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) SIGMA33
+    ! angle 1
+    CALL GET_COMMAND_ARGUMENT(12,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 12.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) ANGLE1
+    ! angle 2
+    CALL GET_COMMAND_ARGUMENT(13,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 13.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) ANGLE2
+    ! angle 3
+    CALL GET_COMMAND_ARGUMENT(14,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 14.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) ANGLE3
   ELSE
-    !If there are not enough arguments default the problem specification 
+    !If there are not enough arguments default the problem specification
     WIDTH                       = 2.0_CMISSRP
     HEIGHT                      = 1.0_CMISSRP
     LENGTH                      = 1.0_CMISSRP
@@ -198,8 +224,11 @@ PROGRAM LAPLACEEXAMPLE
     SIGMA11                     = 1.0_CMISSRP
     SIGMA22                     = 1.0_CMISSRP
     SIGMA33                     = 1.0_CMISSRP
+    ANGLE1                      = 0.0_CMISSRP
+    ANGLE2                      = 0.0_CMISSRP
+    ANGLE3                      = 0.0_CMISSRP
   ENDIF
-  
+
   !Intialise OpenCMISS
   CALL cmfe_Initialise(WorldCoordinateSystem,WorldRegion,Err)
 
@@ -209,7 +238,7 @@ PROGRAM LAPLACEEXAMPLE
   
 !  CALL cmfe_DiagnosticsSetOn(CMFE_IN_DIAG_TYPE,[1,2,3,4,5],"Diagnostics",["DOMAIN_MAPPINGS_LOCAL_FROM_GLOBAL_CALCULATE"],Err)
 
-  WRITE(Filename,'(A,"_",I0,"x",I0,"x",I0,"_",I0)') "Laplace",NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS, &
+  WRITE(Filename,'(A,"_",I0,"x",I0,"x",I0,"_",I0)') "GeneralisedLaplace",NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS, &
     & NUMBER_GLOBAL_Z_ELEMENTS,INTERPOLATION_TYPE
   
   CALL cmfe_OutputSetOn(Filename,Err)
@@ -328,12 +357,118 @@ PROGRAM LAPLACEEXAMPLE
 
   !Update the geometric field parameters
   CALL cmfe_GeneratedMesh_GeometricParametersCalculate(GeneratedMesh,GeometricField,Err)
-  
-  !Create the Standard Laplace Equations set
+
+  !Start to create a fibre field and attach it to the geometric field
+  CALL cmfe_Field_Initialise(FibreField,Err)
+  CALL cmfe_Field_CreateStart(FibreFieldUserNumber,Region,FibreField,Err)
+  CALL cmfe_Field_VariableLabelSet(FibreField,CMFE_FIELD_U_VARIABLE_TYPE,"Fibre",Err)
+  CALL cmfe_Field_TypeSet(FibreField,CMFE_FIELD_FIBRE_TYPE,Err)
+  !Set the decomposition to use
+  CALL cmfe_Field_MeshDecompositionSet(FibreField,Decomposition,Err)
+  CALL cmfe_Field_GeometricFieldSet(FibreField,GeometricField,Err)
+  CALL cmfe_Field_NumberOfVariablesSet(FibreField,FibreFieldNumberOfVariables,Err)
+
+  IF(NUMBER_GLOBAL_Z_ELEMENTS==0) THEN
+    FibreFieldNumberOfComponents=2
+  ELSE
+    FibreFieldNumberOfComponents=3
+  ENDIF
+  CALL cmfe_Field_NumberOfComponentsSet(FibreField,CMFE_FIELD_U_VARIABLE_TYPE,FibreFieldNumberOfComponents,Err)
+
+  !Set the domain to be used by the field components.
+  CALL cmfe_Field_ComponentMeshComponentSet(FibreField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,Err)
+  CALL cmfe_Field_ComponentMeshComponentSet(FibreField,CMFE_FIELD_U_VARIABLE_TYPE,2,1,Err)
+  IF(NUMBER_GLOBAL_Z_ELEMENTS/=0) THEN
+    CALL cmfe_Field_ComponentMeshComponentSet(FibreField,CMFE_FIELD_U_VARIABLE_TYPE,3,1,Err)
+  ENDIF
+  !Finish creating the field
+  CALL cmfe_Field_CreateFinish(FibreField,Err)
+
+  ! Rotation Angles (in radiant!!)
+  ! in 2D an entry in Angle(1) means rotated x-axis,
+  !          entry in Angle(2) doesn't make sense, as rotates out of surface ...
+  ! in 3D an entry in Angle(1) means rotated around z-axis, 
+  !          entry in Angle(2) means rotated around y-axis
+  !          entry in Angle(3) means rotated around x-axis => no change
+  ! 45° equivalent to pi/4, 90° equivalent to pi/2
+
+  ! Set the fibre field angle
+  FibreFieldAngles=(/ANGLE1,ANGLE2,ANGLE3/)   !! ToDo: 2D/3D ??
+
+  CALL cmfe_Nodes_Initialise(Nodes,Err)
+  CALL cmfe_Region_NodesGet(Region,Nodes,Err)
+  CALL cmfe_Nodes_NumberOfNodesGet(Nodes,TotalNumberOfNodes,Err)
+  DO node_idx=1,TotalNumberOfNodes
+    CALL cmfe_Decomposition_NodeDomainGet(Decomposition,node_idx,1,NodeDomain,Err)
+    IF(NodeDomain==ComputationalNodeNumber) THEN
+      DO component_idx=1,FibreFieldNumberOfComponents
+        CALL cmfe_Field_ParameterSetUpdateNode(FibreField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1, &
+          & DerivativeUserNumber,node_idx,component_idx,FibreFieldAngles(component_idx),Err)
+      ENDDO
+    ENDIF
+  ENDDO
+
+  !Start to create material field on the region
+  CALL cmfe_Field_Initialise(MaterialsField,Err)
+  CALL cmfe_Field_CreateStart(MaterialsFieldUserNumber,Region,MaterialsField,Err)
+  CALL cmfe_Field_VariableLabelSet(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,"Material",Err)
+  CALL cmfe_Field_TypeSet(MaterialsField,CMFE_FIELD_MATERIAL_TYPE,Err)
+
+  !Set the decomposition to use
+  CALL cmfe_Field_MeshDecompositionSet(MaterialsField,Decomposition,Err)
+  CALL cmfe_Field_GeometricFieldSet(MaterialsField,GeometricField,Err)
+  CALL cmfe_Field_NumberOfVariablesSet(MaterialsField,1,Err)
+
+  IF(NUMBER_GLOBAL_Z_ELEMENTS==0) THEN
+    ! symmetric 2x2 tensor => 3 different entries
+    ! 1 - 11, 2 - 22, 3 - 12=21
+    CALL cmfe_Field_NumberOfComponentsSet(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,3,Err)
+    CALL cmfe_Field_ComponentInterpolationSet(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,1,CMFE_FIELD_CONSTANT_INTERPOLATION,Err)
+    CALL cmfe_Field_ComponentInterpolationSet(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,2,CMFE_FIELD_CONSTANT_INTERPOLATION,Err)
+    CALL cmfe_Field_ComponentInterpolationSet(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,3,CMFE_FIELD_CONSTANT_INTERPOLATION,Err)
+  ELSE
+    ! symmetric 3x3 tensor => 6 different entries
+    ! 1 - 11, 2 - 22, 3 - 33, 4 - 12=21, 5 - 23=32, 6 - 13=31
+    CALL cmfe_Field_NumberOfComponentsSet(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,6,Err)
+    CALL cmfe_Field_ComponentInterpolationSet(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,1,CMFE_FIELD_CONSTANT_INTERPOLATION,Err)
+    CALL cmfe_Field_ComponentInterpolationSet(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,2,CMFE_FIELD_CONSTANT_INTERPOLATION,Err)
+    CALL cmfe_Field_ComponentInterpolationSet(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,3,CMFE_FIELD_CONSTANT_INTERPOLATION,Err)
+    CALL cmfe_Field_ComponentInterpolationSet(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,4,CMFE_FIELD_CONSTANT_INTERPOLATION,Err)
+    CALL cmfe_Field_ComponentInterpolationSet(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,5,CMFE_FIELD_CONSTANT_INTERPOLATION,Err)
+    CALL cmfe_Field_ComponentInterpolationSet(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,6,CMFE_FIELD_CONSTANT_INTERPOLATION,Err)
+  ENDIF
+
+  !Finish creating the field
+  CALL cmfe_Field_CreateFinish(MaterialsField,Err)
+
+  ! Set the material parameters, i.e. the conductivity values
+  IF(NUMBER_GLOBAL_Z_ELEMENTS==0) THEN
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+      & 1,SIGMA11,Err)  ! 11
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+      & 2,SIGMA22,Err)  ! 22
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+      & 3,0.0_CMISSRP,Err)  ! 12=21
+  ELSE
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+      & 1,SIGMA11,Err)  ! 11
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+      & 2,SIGMA22,Err)  ! 22
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+      & 3,SIGMA33,Err)  ! 33
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+      & 4,0.0_CMISSRP,Err)  ! 12=21
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+      & 5,0.0_CMISSRP,Err)  ! 23=32
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+      & 6,0.0_CMISSRP,Err)  !13=31
+  ENDIF
+
+  !Create the Generalised Laplace Equations set
   CALL cmfe_EquationsSet_Initialise(EquationsSet,Err)
   CALL cmfe_Field_Initialise(EquationsSetField,Err)
-  CALL cmfe_EquationsSet_CreateStart(EquationsSetUserNumber,Region,GeometricField,[CMFE_EQUATIONS_SET_CLASSICAL_FIELD_CLASS, &
-    & CMFE_EQUATIONS_SET_LAPLACE_EQUATION_TYPE,CMFE_EQUATIONS_SET_STANDARD_LAPLACE_SUBTYPE],EquationsSetFieldUserNumber, &
+  CALL cmfe_EquationsSet_CreateStart(EquationsSetUserNumber,Region,FibreField,[CMFE_EQUATIONS_SET_CLASSICAL_FIELD_CLASS, &
+    & CMFE_EQUATIONS_SET_LAPLACE_EQUATION_TYPE,CMFE_EQUATIONS_SET_GENERALISED_LAPLACE_SUBTYPE],EquationsSetFieldUserNumber, &
     & EquationsSetField,EquationsSet,Err)
   !Finish creating the equations set
   CALL cmfe_EquationsSet_CreateFinish(EquationsSet,Err)
@@ -353,6 +488,11 @@ PROGRAM LAPLACEEXAMPLE
   CALL cmfe_Field_ComponentValuesInitialise(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,0.5_CMISSRP, &
     & Err)
 
+  !Create the equations set material field variables
+  CALL cmfe_EquationsSet_MaterialsCreateStart(EquationsSet,MaterialsFieldUserNumber,MaterialsField,Err)
+  !Finish the equations set dependent field variables
+  CALL cmfe_EquationsSet_MaterialsCreateFinish(EquationsSet,Err)
+
   !Create the equations set equations
   CALL cmfe_Equations_Initialise(Equations,Err)
   CALL cmfe_EquationsSet_EquationsCreateStart(EquationsSet,Equations,Err)
@@ -370,7 +510,7 @@ PROGRAM LAPLACEEXAMPLE
   !Start the creation of a problem.
   CALL cmfe_Problem_Initialise(Problem,Err)
   CALL cmfe_Problem_CreateStart(ProblemUserNumber,[CMFE_PROBLEM_CLASSICAL_FIELD_CLASS,CMFE_PROBLEM_LAPLACE_EQUATION_TYPE, &
-    & CMFE_PROBLEM_STANDARD_LAPLACE_SUBTYPE],Problem,Err)
+    & CMFE_PROBLEM_GENERALISED_LAPLACE_SUBTYPE],Problem,Err)
   !Finish the creation of a problem.
   CALL cmfe_Problem_CreateFinish(Problem,Err)
 
@@ -472,4 +612,4 @@ CONTAINS
 
   END SUBROUTINE HANDLE_ERROR
     
-END PROGRAM LAPLACEEXAMPLE
+END PROGRAM GENERALISEDLAPLACEEXAMPLE
