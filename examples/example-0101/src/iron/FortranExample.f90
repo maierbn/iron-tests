@@ -150,36 +150,51 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) WIDTH
     IF(WIDTH<=0) CALL HANDLE_ERROR("Invalid width.")
     CALL GET_COMMAND_ARGUMENT(2,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
-    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 1.")
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 2.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) HEIGHT
     IF(HEIGHT<=0) CALL HANDLE_ERROR("Invalid height.")
     CALL GET_COMMAND_ARGUMENT(3,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
-    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 1.")
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 3.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) LENGTH
     IF(LENGTH<0) CALL HANDLE_ERROR("Invalid length.")
     ! number of elements in each coordinate direction
     CALL GET_COMMAND_ARGUMENT(4,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
-    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 1.")
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 4.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_X_ELEMENTS
     IF(NUMBER_GLOBAL_X_ELEMENTS<=0) CALL HANDLE_ERROR("Invalid number of X elements.")
     CALL GET_COMMAND_ARGUMENT(5,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
-    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 2.")
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 5.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_Y_ELEMENTS
     IF(NUMBER_GLOBAL_Y_ELEMENTS<=0) CALL HANDLE_ERROR("Invalid number of Y elements.")
     CALL GET_COMMAND_ARGUMENT(6,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
-    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 3.")
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 6.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_Z_ELEMENTS
     IF(NUMBER_GLOBAL_Z_ELEMENTS<0) CALL HANDLE_ERROR("Invalid number of Z elements.")
     ! interpolation type (linear, quadratic
     CALL GET_COMMAND_ARGUMENT(7,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
-    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 4.")
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 7.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) INTERPOLATION_TYPE
     IF(INTERPOLATION_TYPE<=0) CALL HANDLE_ERROR("Invalid interpolation specification.")
-    ! solver type (direct, iterative)
+    ! solver type (0: direct linear solve,1: linear iterative solve)
     CALL GET_COMMAND_ARGUMENT(8,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
-    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 5.")
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 8.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) SOLVER_TYPE
     IF((SOLVER_TYPE<0).OR.(SOLVER_TYPE>1)) CALL HANDLE_ERROR("Invalid solver type specification.")
+    ! Material Parameter -> E-Modulus
+    CALL GET_COMMAND_ARGUMENT(9,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 9.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) EMODULE
+    IF(EMODULE<=0) CALL HANDLE_ERROR("Invalid E-Module type specification.")
+    ! Material Parameter -> Poisson Ratio
+    CALL GET_COMMAND_ARGUMENT(10,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 10.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NU
+    IF((NU<=-1.0_CMISSRP) .OR. (NU>0.5_CMISSRP)) CALL HANDLE_ERROR("Invalid Poisson Ratio type specification.")
+    ! BC -> Maximum Displacement in percent
+    CALL GET_COMMAND_ARGUMENT(9,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 11.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) BCDISP_MAX
+    IF(BCDISP_MAX<=1.0) CALL HANDLE_ERROR("Invalid BC specification.")
   ELSE
     !If there are not enough arguments default the problem specification 
     WIDTH                       = 160.0_CMISSRP
@@ -203,8 +218,8 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   CALL cmfe_ErrorHandlingModeSet(CMFE_ERRORS_TRAP_ERROR,Err)
 
   WRITE(*,'(A)') "Program starting."
-  NumberGlobalXElements=4
-  NumberGlobalYElements=4
+  !NumberGlobalXElements=4
+  !NumberGlobalYElements=4
 
   ! Set all diganostic levels on for testing
   CALL cmfe_DiagnosticsSetOn(CMFE_FROM_DIAG_TYPE,[1,2,3,4,5],"Diagnostics",["PROBLEM_FINITE_ELEMENT_CALCULATE"],Err)
@@ -331,9 +346,16 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
                                       !CMFE_SOLVER_MATRIX_OUTPUT !<Solver matrices output from the solver routines plus below.
 !  CALL cmfe_Solver_LibraryTypeSet(SOLVER,CMFE_SOLVER_PETSC_LIBRARY,Err)
 !  CALL cmfe_Solver_LinearTypeSet(SOLVER,CMFE_SOLVER_LINEAR_ITERATIVE_SOLVE_TYPE,Err)
-  CALL cmfe_Solver_LinearTypeSet(SOLVER,CMFE_SOLVER_LINEAR_DIRECT_SOLVE_TYPE ,Err)
-                                      !CMFE_SOLVER_LINEAR_DIRECT_SOLVE_TYPE    !<Direct linear solver type.
-                                      !CMFE_SOLVER_LINEAR_ITERATIVE_SOLVE_TYPE !<Iterative linear solver type.
+
+  ! Chose Solver Type
+  IF(SOLVER_TYPE==0) THEN
+    CALL cmfe_Solver_LinearTypeSet(SOLVER,CMFE_SOLVER_LINEAR_DIRECT_SOLVE_TYPE,Err) !<Direct linear solver type.
+  ELSEIF(SOLVER_TYPE==1) THEN
+    CALL cmfe_Solver_LinearTypeSet(SOLVER,CMFE_SOLVER_LINEAR_ITERATIVE_SOLVE_TYPE,Err) !<Iterative linear solver type.
+  ELSE
+    CALL cmfe_Solver_LinearTypeSet(SOLVER,CMFE_SOLVER_LINEAR_DIRECT_SOLVE_TYPE,Err) !<Direct linear solver type.
+  ENDIF
+  
   CALL cmfe_Problem_SolversCreateFinish(Problem,Err)
 
   ! Solver equations
