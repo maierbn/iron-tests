@@ -113,12 +113,12 @@ PROGRAM MONODOMAINEXAMPLE
   REAL(CMISSRP) :: X,Y,DISTANCE,gNa_VALUE
   
   INTEGER(CMISSIntg) :: OUTPUT_FREQUENCY = 1
-  REAL(CMISSRP), PARAMETER :: STIM_VALUE = 100.0_CMISSRP
+  REAL(CMISSRP) :: STIM_VALUE
   REAL(CMISSRP), PARAMETER :: STIM_STOP = 0.10_CMISSRP
   REAL(CMISSRP) :: TIME_STOP = 1.50_CMISSRP
-  REAL(CMISSRP), PARAMETER :: ODE_TIME_STEP = 0.00001_CMISSRP
-  REAL(CMISSRP) :: PDE_TIME_STEP = 0.001_CMISSRP
-  REAL(CMISSRP), PARAMETER :: CONDUCTIVITY = 0.1_CMISSRP
+  REAL(CMISSRP) :: ODE_TIME_STEP
+  REAL(CMISSRP) :: PDE_TIME_STEP
+  REAL(CMISSRP), PARAMETER :: CONDUCTIVITY = 3.828_CMISSRP
 
   !CMISS variables
 
@@ -214,6 +214,12 @@ PROGRAM MONODOMAINEXAMPLE
     CALL GET_COMMAND_ARGUMENT(9,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) SLOW_TWITCH
     WRITE(*, '("Slow Twitch: ", L)') SLOW_TWITCH
+    
+     ! 10th argument ode time step
+    CALL GET_COMMAND_ARGUMENT(10,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 10.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) ODE_TIME_STEP
+    WRITE(*, '("ODE Step Size: ", E14.7)') ODE_TIME_STEP
 
     inquire(file=CellmlFile, exist=fileExist)
     if (.not. fileExist) then
@@ -243,10 +249,11 @@ PROGRAM MONODOMAINEXAMPLE
     ! BASIS_LINEAR_SIMPLEX_INTERPOLATION=7 !<Linear Simplex interpolation specification \see BASIS_ROUTINES_InterpolationSpecifications,BASIS_ROUTINES
     ! BASIS_QUADRATIC_SIMPLEX_INTERPOLATION=8 !<Quadratic Simplex interpolation specification \see BASIS_ROUTINES_InterpolationSpecifications,BASIS_ROUTINES
     ! BASIS_CUBIC_SIMPLEX_INTERPOLATION=9 !<Cubic Simplex interpolation specification \see BASIS_ROUTINES_InterpolationSpecifications,BASIS_ROUTINES
-    PDE_TIME_STEP=0.05
+    PDE_TIME_STEP = 0.05_CMISSRP
+    ODE_TIME_STEP = 0.001_CMISSRP
     TIME_STOP=1.00
     OUTPUT_FREQUENCY=1
-    CellmlFile="hodgkin_huxley_1952_stim.cellml"
+    CellmlFile="hodgkin_huxley_1952.cellml"
     SLOW_TWITCH=.TRUE.
   ENDIF
 
@@ -413,11 +420,13 @@ PROGRAM MONODOMAINEXAMPLE
   
   IF(Slow_Twitch) THEN
   !Set Cm, slow-twitch
-  CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
-    & 0.58_CMISSRP,Err)
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
+      & 0.58_CMISSRP,Err)
+    STIM_VALUE=1200.0_CMISSRP
   ELSE  
     CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
     & 1.0_CMISSRP,Err)
+    STIM_VALUE=2000.0_CMISSRP
   ENDIF  
   !Set conductivity
   CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,3, &
@@ -518,14 +527,15 @@ PROGRAM MONODOMAINEXAMPLE
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,LastNodeNumber,1,LastNodeDomain,Err)
   
   CALL cmfe_CellML_FieldComponentGet(CellML,n98ModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"membrane/i_Stim",stimcomponent,Err)
-  !Set the Stimulus at half the bottom nodes
-  DO node_idx=1,NUMBER_GLOBAL_X_ELEMENTS/2
-    CALL cmfe_Decomposition_NodeDomainGet(Decomposition,node_idx,1,NodeDomain,Err)
-    IF(NodeDomain==ComputationalNodeNumber) THEN
-      CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
-        & node_idx,stimcomponent,STIM_VALUE,Err)
-    ENDIF
-  ENDDO
+  !turn stimulus on
+  !DO node_idx=1,NUMBER_GLOBAL_X_ELEMENTS/2
+  node_idx=INT((NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1)/2)
+  CALL cmfe_Decomposition_NodeDomainGet(Decomposition,node_idx,1,NodeDomain,Err)
+  IF(NodeDomain==ComputationalNodeNumber) THEN
+    CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
+      & node_idx,stimcomponent,STIM_VALUE,Err)
+  ENDIF
+  !ENDDO
   
   !Set up the g_Na gradient
   !CALL cmfe_CellML_FieldComponentGet(CellML,n98ModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"fast_sodium_current/g_Na", &
@@ -547,6 +557,7 @@ PROGRAM MONODOMAINEXAMPLE
   
   !Start the creation of a problem.
   CALL cmfe_Problem_Initialise(Problem,Err)
+  !Set the Stimulus at half the bottom nodes
   CALL cmfe_Problem_CreateStart(ProblemUserNumber,[CMFE_PROBLEM_BIOELECTRICS_CLASS,CMFE_PROBLEM_MONODOMAIN_EQUATION_TYPE, &
     & CMFE_PROBLEM_MONODOMAIN_GUDUNOV_SPLIT_SUBTYPE],Problem,Err)
   !Finish the creation of a problem.
@@ -650,14 +661,14 @@ PROGRAM MONODOMAINEXAMPLE
   CALL cmfe_Problem_Solve(Problem,Err)
 
   !Now turn the stimulus off
-  !Set the Stimulus at node 1
-  DO node_idx=1,NUMBER_GLOBAL_X_ELEMENTS/2
+  !node_idx is set previously
+  !DO node_idx=1,NUMBER_GLOBAL_X_ELEMENTS/2
     CALL cmfe_Decomposition_NodeDomainGet(Decomposition,node_idx,1,NodeDomain,Err)
     IF(NodeDomain==ComputationalNodeNumber) THEN
       CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
         & node_idx,stimcomponent,0.0_CMISSRP,Err)
     ENDIF
-  ENDDO !node_idx
+  !ENDDO !node_idx
 
   !Set the time loop from STIM_STOP to TIME_STOP
   CALL cmfe_ControlLoop_TimesSet(ControlLoop,STIM_STOP,TIME_STOP,PDE_TIME_STEP,Err)
