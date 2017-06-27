@@ -61,8 +61,7 @@ BCOR5mm, % Binding correction
 %\author{\spacedlowsmallcaps{Andreas Hessenthaler* \& James Smith\textsuperscript{1}}} % The article author(s) - author affiliations need to be specified in the AUTHOR AFFILIATIONS block
 
 \author{% NOTE : Surnames in alphabetical order
-Ekin Altan\footnote{Institute of Applied Mechanics (CE), University of Stuttgart, Pfaffenwaldring 7, 70569 Stuttgart, Germany},
-Christian Bleiler\footnotemark[1],
+Christian Bleiler\footnote{Institute of Applied Mechanics (CE), University of Stuttgart, Pfaffenwaldring 7, 70569 Stuttgart, Germany},
 Andreas Hessenthaler\footnotemark[1],\\
 Thomas Klotz\footnotemark[1],
 Aaron Kr\"amer\footnote{Institute for Parallel and Distributed Systems, University of Stuttgart, Universit\"atsstra\ss e 38, 70569 Stuttgart, Germany},
@@ -128,15 +127,29 @@ Harry Saini\footnotemark[1]
 %
 \subsection{Equation in general form}
 %
+The governing equation is,
+%
 \begin{equation}
-    \partial_t u + \nabla \cdot \nabla u = f
+    \partial_t u + \nabla \cdot [\boldsymbol{\sigma} \nabla u] = f,
 \end{equation}
 %
+with conductivity tensor $\boldsymbol{\sigma}$. The conductivity tensor is,
+%
+\begin{itemize}
+    \item{defined in material coordinates (fibre direction),}
+    \item{diagonal,}
+    \item{defined per element.}
+\end{itemize}
+%
 \input{examples/example-0001/doc/example}
+%
+\input{examples/example-0001-u/doc/example}
 %
 %\input{examples/example-0002-a/doc/example}
 %
 %\input{examples/example-0002-b/doc/example}
+%
+\input{examples/example-0011/doc/example}
 %
 %===============================================================================
 %
@@ -172,9 +185,17 @@ Harry Saini\footnotemark[1]
 %
 \clearpage
 %
-\section{CellML model}
+\section{Monodomain}
 %
 %\input{examples/example-0401/doc/example}
+%
+%===============================================================================
+%
+\clearpage
+%
+\section{CellML model}
+%
+%\input{examples/example-0501/doc/example}
 %
 %
 %===============================================================================

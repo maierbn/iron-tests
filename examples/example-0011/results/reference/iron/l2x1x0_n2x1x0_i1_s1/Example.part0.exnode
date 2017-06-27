@@ -1,0 +1,39 @@
+ Group name: Region
+ #Fields=3
+ 1) Geometry, coordinate, rectangular cartesian, #Components=2
+   x.  Value index= 1, #Derivatives= 0
+   y.  Value index= 2, #Derivatives= 0
+ 2) ScalarField, field,  rectangular cartesian, #Components=1
+   1.  Value index= 3, #Derivatives= 0
+ 3) ScalarField (derivative), field,  rectangular cartesian, #Components=1
+   1.  Value index= 4, #Derivatives= 0
+ Node:            1
+  0.0000000000000000E+00
+  0.0000000000000000E+00
+  0.0000000000000000E+00
+  -3.2051282051282048E-01
+ Node:            2
+  1.0000000000000000E+00
+  0.0000000000000000E+00
+  5.3846153846153844E-01
+  1.1102230246251565E-16
+ Node:            3
+  2.0000000000000000E+00
+  0.0000000000000000E+00
+  6.1538461538461542E-01
+  8.9743589743589758E-02
+ Node:            4
+  0.0000000000000000E+00
+  1.0000000000000000E+00
+  3.8461538461538447E-01
+  1.6666666666666680E-01
+ Node:            5
+  1.0000000000000000E+00
+  1.0000000000000000E+00
+  4.6153846153846156E-01
+  8.3266726846886741E-17
+ Node:            6
+  2.0000000000000000E+00
+  1.0000000000000000E+00
+  1.0000000000000000E+00
+  6.4102564102564041E-02
