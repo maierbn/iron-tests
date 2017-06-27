@@ -102,6 +102,7 @@ PROGRAM MONODOMAINEXAMPLE
 
   INTEGER(CMISSIntg) :: NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS,NUMBER_GLOBAL_Z_ELEMENTS
   INTEGER(CMISSIntg) :: SOLVER_TYPE, INTERPOLATION_TYPE, NUMBER_OF_GAUSS_XI
+  LOGICAL :: SLOW_TWITCH
 
   LOGICAL :: EXPORT_FIELD
 
@@ -208,6 +209,11 @@ PROGRAM MONODOMAINEXAMPLE
     !IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 8.")
     CellmlFile = adjustl(COMMAND_ARGUMENT)
     WRITE(*, '("CellML File: ", A)') TRIM(CellmlFile)
+    
+    ! 9th argument fast or slow twitch parameters of cellml model
+    CALL GET_COMMAND_ARGUMENT(9,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) SLOW_TWITCH
+    WRITE(*, '("Slow Twitch: ", L)') SLOW_TWITCH
 
     inquire(file=CellmlFile, exist=fileExist)
     if (.not. fileExist) then
@@ -241,6 +247,7 @@ PROGRAM MONODOMAINEXAMPLE
     TIME_STOP=1.00
     OUTPUT_FREQUENCY=1
     CellmlFile="hodgkin_huxley_1952_stim.cellml"
+    SLOW_TWITCH=.TRUE.
   ENDIF
 
   ! determine file name for output files
@@ -402,10 +409,16 @@ PROGRAM MONODOMAINEXAMPLE
   
   !Set Am
   CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1, &
-    & 193.6_CMISSRP,Err)
-  !Set Cm
+    & 500.0_CMISSRP,Err)
+  
+  IF(Slow_Twitch) THEN
+  !Set Cm, slow-twitch
   CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
-    & 0.014651_CMISSRP,Err)
+    & 0.58_CMISSRP,Err)
+  ELSE  
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
+    & 1.0_CMISSRP,Err)
+  ENDIF  
   !Set conductivity
   CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,3, &
     & CONDUCTIVITY,Err)
@@ -455,7 +468,7 @@ PROGRAM MONODOMAINEXAMPLE
 
   !todo - get vm initialial value.
   CALL cmfe_Field_ComponentValuesInitialise(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1, &
-    & -92.5_CMISSRP,Err)
+    & 75.0_CMISSRP,Err)
   
   !Start the creation of the CellML models field
   CALL cmfe_Field_Initialise(CellMLModelsField,Err)
