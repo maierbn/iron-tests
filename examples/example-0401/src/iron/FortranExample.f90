@@ -40,7 +40,7 @@
 !>
 
 !> \example Bioelectrics/Monodomain/src/MonodomainExample.f90
-!! Example program to solve a Monodomain equation using OpenCMISS calls.
+!! Example program to solve a Monodomain equation using OpenCMISS calls. Example-0401
 !! \par Latest Builds:
 !! \li <a href='http://autotest.bioeng.auckland.ac.nz/opencmiss-build/logs_x86_64-linux/Bioelectrics/Monodomain/build-intel'>Linux Intel Build</a>
 !! \li <a href='http://autotest.bioeng.auckland.ac.nz/opencmiss-build/logs_x86_64-linux/Bioelectrics/Monodomain/build-gnu'>Linux GNU Build</a>
@@ -144,7 +144,7 @@ PROGRAM MONODOMAINEXAMPLE
   !Generic CMISS variables
   
   INTEGER(CMISSIntg) :: NumberOfComputationalNodes,ComputationalNodeNumber
-  INTEGER(CMISSIntg) :: EquationsSetIndex,CellMLIndex
+  INTEGER(CMISSIntg) :: EquationsSetIndex,CellMLIndex,StimulationNodeIdx
   INTEGER(CMISSIntg) :: FirstNodeNumber,LastNodeNumber
   INTEGER(CMISSIntg) :: FirstNodeDomain,LastNodeDomain,NodeDomain
   INTEGER(CMISSIntg) :: Err
@@ -527,15 +527,13 @@ PROGRAM MONODOMAINEXAMPLE
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,LastNodeNumber,1,LastNodeDomain,Err)
   
   CALL cmfe_CellML_FieldComponentGet(CellML,n98ModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"membrane/i_Stim",stimcomponent,Err)
-  !turn stimulus on
-  !DO node_idx=1,NUMBER_GLOBAL_X_ELEMENTS/2
-  node_idx=INT((NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1)/2)
-  CALL cmfe_Decomposition_NodeDomainGet(Decomposition,node_idx,1,NodeDomain,Err)
+  !turn stimulus on at central point
+  StimulationNodeIdx = INT(CEILING(DBLE((NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1))/2))
+  CALL cmfe_Decomposition_NodeDomainGet(Decomposition,StimulationNodeIdx,1,NodeDomain,Err)
   IF(NodeDomain==ComputationalNodeNumber) THEN
     CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
-      & node_idx,stimcomponent,STIM_VALUE,Err)
+      & StimulationNodeIdx,stimcomponent,STIM_VALUE,Err)
   ENDIF
-  !ENDDO
   
   !Set up the g_Na gradient
   !CALL cmfe_CellML_FieldComponentGet(CellML,n98ModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"fast_sodium_current/g_Na", &
@@ -661,14 +659,12 @@ PROGRAM MONODOMAINEXAMPLE
   CALL cmfe_Problem_Solve(Problem,Err)
 
   !Now turn the stimulus off
-  !node_idx is set previously
-  !DO node_idx=1,NUMBER_GLOBAL_X_ELEMENTS/2
-    CALL cmfe_Decomposition_NodeDomainGet(Decomposition,node_idx,1,NodeDomain,Err)
-    IF(NodeDomain==ComputationalNodeNumber) THEN
-      CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
-        & node_idx,stimcomponent,0.0_CMISSRP,Err)
-    ENDIF
-  !ENDDO !node_idx
+  !StimulationNodeIdx is set previously
+  CALL cmfe_Decomposition_NodeDomainGet(Decomposition,StimulationNodeIdx,1,NodeDomain,Err)
+  IF(NodeDomain==ComputationalNodeNumber) THEN
+    CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
+      & StimulationNodeIdx,stimcomponent,0.0_CMISSRP,Err)
+  ENDIF
 
   !Set the time loop from STIM_STOP to TIME_STOP
   CALL cmfe_ControlLoop_TimesSet(ControlLoop,STIM_STOP,TIME_STOP,PDE_TIME_STEP,Err)
