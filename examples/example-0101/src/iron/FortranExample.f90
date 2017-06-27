@@ -84,8 +84,8 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   REAL(CMISSRP),        PARAMETER ::    WIDTH       = 160.0_CMISSRP
   REAL(CMISSRP),        PARAMETER ::    ZERO        = 0.0_CMISSRP
   REAL(CMISSRP),        PARAMETER ::    THICKNESS   = 1.0_CMISSRP
-  REAL(CMISSRP),        PARAMETER ::    EMODULE     = 30.0E6_CMISSRP
-  REAL(CMISSRP),        PARAMETER ::    NU          = 0.499_CMISSRP
+  REAL(CMISSRP),        PARAMETER ::    EMODULE     = 10000.0_CMISSRP!10.0E3_CMISSRP
+  REAL(CMISSRP),        PARAMETER ::    NU          = 0.3_CMISSRP
   REAL(CMISSRP)                   ::    BCDISP      = 0.0_CMISSRP
 
   !Program variables
@@ -272,7 +272,8 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
                                       !CMFE_SOLVER_SOLVER_OUTPUT !<Solver specific output from the solver routines plus below.
                                       !CMFE_SOLVER_MATRIX_OUTPUT !<Solver matrices output from the solver routines plus below.
 !  CALL cmfe_Solver_LibraryTypeSet(SOLVER,CMFE_SOLVER_PETSC_LIBRARY,Err)
-  CALL cmfe_Solver_LinearTypeSet(SOLVER,CMFE_SOLVER_LINEAR_ITERATIVE_SOLVE_TYPE,Err)
+!  CALL cmfe_Solver_LinearTypeSet(SOLVER,CMFE_SOLVER_LINEAR_ITERATIVE_SOLVE_TYPE,Err)
+  CALL cmfe_Solver_LinearTypeSet(SOLVER,CMFE_SOLVER_LINEAR_DIRECT_SOLVE_TYPE ,Err)
                                       !CMFE_SOLVER_LINEAR_DIRECT_SOLVE_TYPE    !<Direct linear solver type.
                                       !CMFE_SOLVER_LINEAR_ITERATIVE_SOLVE_TYPE !<Iterative linear solver type.
   CALL cmfe_Problem_SolversCreateFinish(Problem,Err)
@@ -331,7 +332,8 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   DO TIMESTEP=1,TIMESTEPS
     WRITE(*,*) "TIME STEP ",TIMESTEP,"/",TIMESTEPS
     ! update BCs - move right surface nodes in positive x-direction
-    BCDISP = 0.1*WIDTH*(TIMESTEP-1)/TIMESTEPS
+    !BCDISP = 0.1*WIDTH*(TIMESTEP)/TIMESTEPS
+    BCDISP = 0.1_CMISSRP*WIDTH*(TIMESTEP-1)/(TIMESTEPS-1)
     DO node_idx=1,SIZE(RightSurfaceNodes,1)
       NodeNumber=RightSurfaceNodes(node_idx)
       CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
