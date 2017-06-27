@@ -79,14 +79,15 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
 
   INTEGER(CMISSIntg),   PARAMETER ::    TIMESTEPS   = 5
   INTEGER(CMISSIntg)              ::    TIMESTEP    = 0
-  REAL(CMISSRP),        PARAMETER ::    ORIGIN(3)   = [0.0_CMISSRP,0.0_CMISSRP,0.0_CMISSRP]
-  REAL(CMISSRP),        PARAMETER ::    LENGTH      = 120.0_CMISSRP
-  REAL(CMISSRP),        PARAMETER ::    WIDTH       = 160.0_CMISSRP
+  REAL(CMISSRP),        PARAMETER ::    ORIGIN(3)   = [0.0_CMISSRP,0.0_CMISSRP,0.0_CMISSRP]       
   REAL(CMISSRP),        PARAMETER ::    ZERO        = 0.0_CMISSRP
-  REAL(CMISSRP),        PARAMETER ::    THICKNESS   = 1.0_CMISSRP
-  REAL(CMISSRP),        PARAMETER ::    EMODULE     = 10000.0_CMISSRP!10.0E3_CMISSRP
-  REAL(CMISSRP),        PARAMETER ::    NU          = 0.3_CMISSRP
-  REAL(CMISSRP)                   ::    BCDISP      = 0.0_CMISSRP
+  
+  REAL(CMISSRP)         ::    LENGTH,WIDTH,HEIGHT          
+  REAL(CMISSRP)         ::    EMODULE,NU,BCDISP_MAX     
+  INTEGER(CMISSIntg)    ::    INTERPOLATION_TYPE,SOLVER_TYPE        
+  REAL(CMISSRP)         ::    BCDISP      = 0.0_CMISSRP
+  
+  INTEGER(CMISSIntg),   PARAMETER ::    NUMBER_OF_ARGUMENTS = 11
 
   !Program variables
   INTEGER(CMISSIntg)                :: NumberGlobalXElements,NumberGlobalYElements
@@ -139,6 +140,63 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   ! If attempt fails set with system estimated values
   IF(.NOT.QUICKWIN_STATUS) QUICKWIN_STATUS=SETWINDOWCONFIG(QUICKWIN_WINDOW_CONFIG)
 #endif
+
+!!!!!!!! Command Line Interface !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  NUMBER_OF_ARGUMENTS = COMMAND_ARGUMENT_COUNT()
+  IF(NUMBER_OF_ARGUMENTS >= 11) THEN
+    ! get extents of spatial domain
+    CALL GET_COMMAND_ARGUMENT(1,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 1.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) WIDTH
+    IF(WIDTH<=0) CALL HANDLE_ERROR("Invalid width.")
+    CALL GET_COMMAND_ARGUMENT(2,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 1.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) HEIGHT
+    IF(HEIGHT<=0) CALL HANDLE_ERROR("Invalid height.")
+    CALL GET_COMMAND_ARGUMENT(3,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 1.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) LENGTH
+    IF(LENGTH<0) CALL HANDLE_ERROR("Invalid length.")
+    ! number of elements in each coordinate direction
+    CALL GET_COMMAND_ARGUMENT(4,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 1.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_X_ELEMENTS
+    IF(NUMBER_GLOBAL_X_ELEMENTS<=0) CALL HANDLE_ERROR("Invalid number of X elements.")
+    CALL GET_COMMAND_ARGUMENT(5,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 2.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_Y_ELEMENTS
+    IF(NUMBER_GLOBAL_Y_ELEMENTS<=0) CALL HANDLE_ERROR("Invalid number of Y elements.")
+    CALL GET_COMMAND_ARGUMENT(6,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 3.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_Z_ELEMENTS
+    IF(NUMBER_GLOBAL_Z_ELEMENTS<0) CALL HANDLE_ERROR("Invalid number of Z elements.")
+    ! interpolation type (linear, quadratic
+    CALL GET_COMMAND_ARGUMENT(7,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 4.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) INTERPOLATION_TYPE
+    IF(INTERPOLATION_TYPE<=0) CALL HANDLE_ERROR("Invalid interpolation specification.")
+    ! solver type (direct, iterative)
+    CALL GET_COMMAND_ARGUMENT(8,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 5.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) SOLVER_TYPE
+    IF((SOLVER_TYPE<0).OR.(SOLVER_TYPE>1)) CALL HANDLE_ERROR("Invalid solver type specification.")
+  ELSE
+    !If there are not enough arguments default the problem specification 
+    WIDTH                       = 160.0_CMISSRP
+    HEIGHT                      = 120.0_CMISSRP
+    LENGTH                      = 0.0_CMISSRP
+    NUMBER_GLOBAL_X_ELEMENTS    = 4
+    NUMBER_GLOBAL_Y_ELEMENTS    = 4
+    NUMBER_GLOBAL_Z_ELEMENTS    = 0
+    INTERPOLATION_TYPE          = CMFE_BASIS_LINEAR_LAGRANGE_INTERPOLATION
+    SOLVER_TYPE                 = 0
+    EMODULE                     = 10000.0_CMISSRP
+    NU                          = 0.3_CMISSRP
+    BCDISP_MAX                  = 0.1_CMISSRP
+  ENDIF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 
   ! Intialise cmiss
   CALL cmfe_Initialise(WorldCoordinateSystem,WorldRegion,Err)
@@ -332,8 +390,8 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   DO TIMESTEP=1,TIMESTEPS
     WRITE(*,*) "TIME STEP ",TIMESTEP,"/",TIMESTEPS
     ! update BCs - move right surface nodes in positive x-direction
-    !BCDISP = 0.1*WIDTH*(TIMESTEP)/TIMESTEPS
-    BCDISP = 0.1_CMISSRP*WIDTH*(TIMESTEP-1)/(TIMESTEPS-1)
+    !BCDISP = 0.1_CMISSRP*WIDTH*(TIMESTEP-1)/(TIMESTEPS-1)
+    BCDISP = BCDISP_MAX*WIDTH*(TIMESTEP-1)/(TIMESTEPS-1)
     DO node_idx=1,SIZE(RightSurfaceNodes,1)
       NodeNumber=RightSurfaceNodes(node_idx)
       CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
