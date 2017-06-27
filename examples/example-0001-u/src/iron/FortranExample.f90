@@ -24,7 +24,7 @@
 !> of Oxford are Copyright (C) 2007 by the University of Auckland and
 !> the University of Oxford. All Rights Reserved.
 !>
-!> Contributor(s):
+!> Contributor(s): Andreas Hessenthaler
 !>
 !> Alternatively, the contents of this file may be used under the terms of
 !> either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -100,7 +100,7 @@ PROGRAM LAPLACEEXAMPLE
   TYPE(cmfe_EquationsSetType) :: EquationsSet
   TYPE(cmfe_FieldType) :: GeometricField,EquationsSetField,DependentField
   TYPE(cmfe_FieldsType) :: Fields
-  TYPE(cmfe_GeneratedMeshType) :: GeneratedMesh  
+  TYPE(cmfe_MeshElementsType) :: MeshElements
   TYPE(cmfe_MeshType) :: Mesh
   TYPE(cmfe_NodesType) :: Nodes
   TYPE(cmfe_ProblemType) :: Problem
@@ -116,11 +116,19 @@ PROGRAM LAPLACEEXAMPLE
   
   !Generic CMISS variables
   
-  INTEGER(CMISSIntg) :: NumberOfComputationalNodes,ComputationalNodeNumber
-  INTEGER(CMISSIntg) :: EquationsSetIndex
-  INTEGER(CMISSIntg) :: FirstNodeNumber,LastNodeNumber
-  INTEGER(CMISSIntg) :: FirstNodeDomain,LastNodeDomain
-  INTEGER(CMISSIntg) :: Err
+  INTEGER(CMISSIntg)    :: NumberOfComputationalNodes,ComputationalNodeNumber
+  INTEGER(CMISSIntg)    :: EquationsSetIndex
+  INTEGER(CMISSIntg)    :: NumberOfDimensions,NumberOfNodes,NumberOfElements
+  INTEGER(CMISSIntg)    :: NumberOfNodesPerElement, NumberOfBoundaryPatches, NumberOfBoundaryPatchComponents
+  INTEGER(CMISSIntg)    :: FirstNodeNumber,LastNodeNumber
+  INTEGER(CMISSIntg)    :: FirstNodeDomain,LastNodeDomain,NodeDomain
+  INTEGER(CMISSIntg)    :: NodeIdx,ComponentIdx,ElementIdx
+  INTEGER(CMISSIntg)    :: Err
+  LOGICAL               :: FileExists
+
+  REAL(CMISSRP),        ALLOCATABLE :: NodesImport(:,:)           !< The coordinates of the mesh nodes
+  INTEGER(CMISSIntg),   ALLOCATABLE :: ElementsImport(:,:)        !< The node IDs for each element
+  INTEGER(CMISSIntg),   ALLOCATABLE :: BoundaryPatchesImport(:,:) !< The boundary patch labels for all boundary nodes
   
 #ifdef WIN32
   !Initialise QuickWin
@@ -262,54 +270,58 @@ PROGRAM LAPLACEEXAMPLE
   !Finish the creation of the basis
   CALL cmfe_Basis_CreateFinish(Basis,Err)
 
-
-
-
-
-
+  ! get user-defined mesh file name
+  WRITE(Filename, "(A26,I1,A1,I1,A1,I1,A2,I1,A1,I1,A1,I1,A2,I1,A3)") &
+    & "src/cheart/meshes/domain_l", &
+    & INT(WIDTH),"x",INT(HEIGHT),"x",INT(LENGTH), &
+    & "_n", &
+    & NUMBER_GLOBAL_X_ELEMENTS,"x",NUMBER_GLOBAL_Y_ELEMENTS,"x",NUMBER_GLOBAL_Z_ELEMENTS, &
+    & "_i",INTERPOLATION_TYPE,"_FE"
+  ! Check whether file exists
+  INQUIRE(FILE=trim(Filename)//".X",EXIST=FileExists)
+  IF(.NOT.FileExists) THEN
+    CALL HANDLE_ERROR("File does not exist: "//trim(Filename)//".X")
+  ENDIF
+  INQUIRE(FILE=trim(Filename)//".T",EXIST=FileExists)
+  IF(.NOT.FileExists) THEN
+    CALL HANDLE_ERROR("File does not exist: "//trim(Filename)//".T")
+  ENDIF
+  INQUIRE(FILE=trim(Filename)//".B",EXIST=FileExists)
+  IF(.NOT.FileExists) THEN
+    CALL HANDLE_ERROR("File does not exist: "//trim(Filename)//".B")
+  ENDIF
   ! Read CHeart mesh based on the given command line arguments
   ! Read mesh info
-  CALL cmfe_ReadMeshInfo(Filename, NumberOfDimensions, NumberOfNodes, NumberOfElements, &
-    & NumberOfNodesPerElement, NumberOfBoundaryPatches, NumberOfBoundaryPatchComponents, Method, Err)
+  WRITE(*,*) "Reading CHeart mesh data"
+  CALL cmfe_ReadMeshInfo(trim(Filename), NumberOfDimensions, NumberOfNodes, NumberOfElements, &
+    & NumberOfNodesPerElement, NumberOfBoundaryPatches, NumberOfBoundaryPatchComponents, "CHeart", Err)
   ! Allocate variables to store mesh data
-  ALLOCATE(Nodes(NumberOfNodes,NumberOfDimensions),STAT=Err)
-  IF(Err/=0) CALL FlagError("Can not allocate memory.", Err, Error, *999)
-  ALLOCATE(Elements(NumberOfElements,NumberOfNodesPerElement),STAT=Err)
-  IF(Err/=0) CALL FlagError("Can not allocate memory.", Err, Error, *999)
-  ALLOCATE(BoundaryPatches(NumberOfBoundaryPatches,NumberOfDimensions),STAT=Err)
-  IF(Err/=0) CALL FlagError("Can not allocate memory.", Err, Error, *999)
+  ALLOCATE(NodesImport(NumberOfNodes,NumberOfDimensions),STAT=Err)
+  IF(Err/=0) CALL HANDLE_ERROR("Can not allocate memory.")
+  ALLOCATE(ElementsImport(NumberOfElements,NumberOfNodesPerElement),STAT=Err)
+  IF(Err/=0) CALL HANDLE_ERROR("Can not allocate memory.")
+  ALLOCATE(BoundaryPatchesImport(NumberOfBoundaryPatches,NumberOfBoundaryPatchComponents),STAT=Err)
+  IF(Err/=0) CALL HANDLE_ERROR("Can not allocate memory.")
   ! Read mesh data
-  CALL cmfe_ReadMeshFiles(Filename, Nodes, Elements, BoundaryPatches, Method, Err)
-  ! Deallocate variables that store mesh data as soon as we don't need them anymore
-  IF(ALLOCATED(Nodes))              DEALLOCATE(Nodes)
-  IF(ALLOCATED(Elements))           DEALLOCATE(Elements)
-  IF(ALLOCATED(BoundaryPatches))    DEALLOCATE(BoundaryPatches)
+  CALL cmfe_ReadMeshFiles(trim(Filename), NodesImport, ElementsImport, BoundaryPatchesImport, "CHeart", Err)
+  WRITE(*,*) "...done"
 
-
-
-
-
-
-
-  !Start the creation of a generated mesh in the region
-  CALL cmfe_GeneratedMesh_Initialise(GeneratedMesh,Err)
-  CALL cmfe_GeneratedMesh_CreateStart(GeneratedMeshUserNumber,Region,GeneratedMesh,Err)
-  !Set up a regular x*y*z mesh
-  CALL cmfe_GeneratedMesh_TypeSet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_MESH_TYPE,Err)
-  !Set the default basis
-  CALL cmfe_GeneratedMesh_BasisSet(GeneratedMesh,Basis,Err)   
-  !Define the mesh on the region
-  IF(NUMBER_GLOBAL_Z_ELEMENTS==0) THEN
-    CALL cmfe_GeneratedMesh_ExtentSet(GeneratedMesh,[WIDTH,HEIGHT],Err)
-    CALL cmfe_GeneratedMesh_NumberOfElementsSet(GeneratedMesh,[NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS],Err)
-  ELSE
-    CALL cmfe_GeneratedMesh_ExtentSet(GeneratedMesh,[WIDTH,HEIGHT,LENGTH],Err)
-    CALL cmfe_GeneratedMesh_NumberOfElementsSet(GeneratedMesh,[NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS, &
-      & NUMBER_GLOBAL_Z_ELEMENTS],Err)
-  ENDIF    
-  !Finish the creation of a generated mesh in the region
+  ! set up mesh from imported mesh data
+  CALL cmfe_Nodes_Initialise(Nodes,Err)
+  CALL cmfe_Nodes_CreateStart(Region,NumberOfNodes,Nodes,Err)
+  CALL cmfe_Nodes_CreateFinish(Nodes,Err)
   CALL cmfe_Mesh_Initialise(Mesh,Err)
-  CALL cmfe_GeneratedMesh_CreateFinish(GeneratedMesh,MeshUserNumber,Mesh,Err)
+  CALL cmfe_Mesh_CreateStart(MeshUserNumber,Region,NumberOfDimensions,Mesh,Err)
+  CALL cmfe_Mesh_NumberOfElementsSet(Mesh,NumberOfElements,Err)
+  CALL cmfe_Mesh_NumberOfComponentsSet(Mesh,1,Err)
+  CALL cmfe_MeshElements_Initialise(MeshElements,Err)
+  CALL cmfe_MeshElements_CreateStart(Mesh,1,Basis,MeshElements,Err)
+  DO ElementIdx=1,NumberOfElements
+    CALL cmfe_MeshElements_NodesSet(MeshElements,ElementIdx, &
+      & ElementsImport(ElementIdx,:),Err)
+  END DO
+  CALL cmfe_MeshElements_CreateFinish(MeshElements,Err)
+  CALL cmfe_Mesh_CreateFinish(Mesh,Err)
 
   !Create a decomposition
   CALL cmfe_Decomposition_Initialise(Decomposition,Err)
@@ -338,8 +350,23 @@ PROGRAM LAPLACEEXAMPLE
   !Finish creating the field
   CALL cmfe_Field_CreateFinish(GeometricField,Err)
 
-  !Update the geometric field parameters
-  CALL cmfe_GeneratedMesh_GeometricParametersCalculate(GeneratedMesh,GeometricField,Err)
+  ! Update the geometric field parameters
+  ! For all node IDs
+  DO NodeIdx=1,NumberOfNodes
+    CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeIdx,1,NodeDomain,Err)
+    ! Check if node is present in this processors' computational domain
+    IF(NodeDomain==ComputationalNodeNumber) THEN
+      ! For all components
+      DO ComponentIdx=1,NumberOfDimensions
+        ! Update coordinates
+        CALL cmfe_Field_ParameterSetUpdateNode(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE, &
+          & CMFE_FIELD_VALUES_SET_TYPE,1,CMFE_NO_GLOBAL_DERIV,NodeIdx,ComponentIdx, &
+          & NodesImport(NodeIdx,ComponentIdx),Err)
+      END DO
+    END IF
+  END DO
+  CALL cmfe_Field_ParameterSetUpdateStart(GeometricField, &
+    & CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,Err)
   
   !Create the Standard Laplace Equations set
   CALL cmfe_EquationsSet_Initialise(EquationsSet,Err)
@@ -433,8 +460,6 @@ PROGRAM LAPLACEEXAMPLE
   CALL cmfe_SolverEquations_BoundaryConditionsCreateStart(SolverEquations,BoundaryConditions,Err)
   !Set the first node to 0.0 and the last node to 1.0
   FirstNodeNumber=1
-  CALL cmfe_Nodes_Initialise(Nodes,Err)
-  CALL cmfe_Region_NodesGet(Region,Nodes,Err)
   CALL cmfe_Nodes_NumberOfNodesGet(Nodes,LastNodeNumber,Err)
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,FirstNodeNumber,1,FirstNodeDomain,Err)
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,LastNodeNumber,1,LastNodeDomain,Err)
@@ -467,6 +492,10 @@ PROGRAM LAPLACEEXAMPLE
   CALL cmfe_Fields_Finalise(Fields,Err)
   
   !Finialise CMISS
+  ! Deallocate variables that store mesh data as soon as we don't need them anymore
+  IF(ALLOCATED(NodesImport))            DEALLOCATE(NodesImport)
+  IF(ALLOCATED(ElementsImport))         DEALLOCATE(ElementsImport)
+  IF(ALLOCATED(BoundaryPatchesImport))  DEALLOCATE(BoundaryPatchesImport)
   CALL cmfe_Finalise(Err)
 
   WRITE(*,'(A)') "Program successfully completed."
