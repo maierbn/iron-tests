@@ -53,6 +53,7 @@ examples/example-*/*.exnode
 examples/example-*/*.exelem
 examples/example-*/*.diag
 examples/example-*/*.out
+examples/example-*/results/current_run
 
 # Misc
 *~
