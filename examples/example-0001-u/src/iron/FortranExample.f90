@@ -364,6 +364,28 @@ PROGRAM LAPLACEEXAMPLE
           & NodesImport(NodeIdx,ComponentIdx),Err)
       END DO
     END IF
+    ! Get the nodes at x=y=z=0 and x=WIDTH,y=HEIGHT,z=LENGTH
+    IF(NumberOfDimensions==2) THEN
+      IF(SQRT((NodesImport(NodeIdx,1)-0.0)**2.0 &
+        & +(NodesImport(NodeIdx,2)-0.0)**2.0)<1e-6) THEN
+        FirstNodeNumber = NodeIdx
+      END IF
+      IF(SQRT((NodesImport(NodeIdx,1)-WIDTH)**2.0 &
+        & +(NodesImport(NodeIdx,2)-HEIGHT)**2.0)<1e-6) THEN
+        LastNodeNumber = NodeIdx
+      END IF
+    ELSE
+      IF(SQRT((NodesImport(NodeIdx,1)-0.0)**2.0 &
+        & +(NodesImport(NodeIdx,2)-0.0)**2.0 &
+        & +(NodesImport(NodeIdx,3)-0.0)**2.0)<1e-6) THEN
+        FirstNodeNumber = NodeIdx
+      END IF
+      IF(SQRT((NodesImport(NodeIdx,1)-WIDTH)**2.0 &
+        & +(NodesImport(NodeIdx,2)-HEIGHT)**2.0 &
+        & +(NodesImport(NodeIdx,3)-LENGTH)**2.0)<1e-6) THEN
+        LastNodeNumber = NodeIdx
+      END IF
+    END IF
   END DO
   CALL cmfe_Field_ParameterSetUpdateStart(GeometricField, &
     & CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,Err)
@@ -459,8 +481,6 @@ PROGRAM LAPLACEEXAMPLE
   CALL cmfe_BoundaryConditions_Initialise(BoundaryConditions,Err)
   CALL cmfe_SolverEquations_BoundaryConditionsCreateStart(SolverEquations,BoundaryConditions,Err)
   !Set the first node to 0.0 and the last node to 1.0
-  FirstNodeNumber=1
-  CALL cmfe_Nodes_NumberOfNodesGet(Nodes,LastNodeNumber,Err)
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,FirstNodeNumber,1,FirstNodeDomain,Err)
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,LastNodeNumber,1,LastNodeDomain,Err)
   IF(FirstNodeDomain==ComputationalNodeNumber) THEN
