@@ -81,16 +81,19 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   INTEGER(CMISSIntg)              ::    TIMESTEP    = 0
   REAL(CMISSRP),        PARAMETER ::    ORIGIN(3)   = [0.0_CMISSRP,0.0_CMISSRP,0.0_CMISSRP]       
   REAL(CMISSRP),        PARAMETER ::    ZERO        = 0.0_CMISSRP
+  REAL(CMISSRP),        PARAMETER ::    THICKNESS   = 0.0_CMISSRP
   
   REAL(CMISSRP)         ::    LENGTH,WIDTH,HEIGHT          
   REAL(CMISSRP)         ::    EMODULE,NU,BCDISP_MAX     
   INTEGER(CMISSIntg)    ::    INTERPOLATION_TYPE,SOLVER_TYPE        
   REAL(CMISSRP)         ::    BCDISP      = 0.0_CMISSRP
   
-  INTEGER(CMISSIntg),   PARAMETER ::    NUMBER_OF_ARGUMENTS = 11
+  !INTEGER(CMISSIntg),   PARAMETER ::    NUMBER_OF_ARGUMENTS = 11
 
   !Program variables
-  INTEGER(CMISSIntg)                :: NumberGlobalXElements,NumberGlobalYElements
+  INTEGER(CMISSIntg)                :: NUMBER_OF_ARGUMENTS,ARGUMENT_LENGTH,STATUS
+  INTEGER(CMISSIntg)                :: NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS,NUMBER_GLOBAL_Z_ELEMENTS
+  CHARACTER(LEN=255)                :: COMMAND_ARGUMENT
   INTEGER(CMISSIntg)                :: MPI_IERROR
   INTEGER(CMISSIntg)                :: EquationsSetIndex
   INTEGER(CMISSIntg)                :: NumberOfComputationalNodes,ComputationalNodeNumber
@@ -98,6 +101,7 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   INTEGER(CMISSIntg),ALLOCATABLE    :: FrontSurfaceNodes(:)
   INTEGER(CMISSIntg),ALLOCATABLE    :: LeftSurfaceNodes(:)
   INTEGER(CMISSIntg),ALLOCATABLE    :: RightSurfaceNodes(:)
+  INTEGER(CMISSIntg),ALLOCATABLE    :: BottomSurfaceNodes(:)
   INTEGER(CMISSIntg)                :: LeftNormalXi,RightNormalXi,FrontNormalXi,BottomNormalXi
   CHARACTER(LEN=256)                :: filename
 
@@ -409,7 +413,7 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   ! Boundary conditions
   IF(NumberOfSpatialCoordinates==3) THEN !!!!!!!!!!!!!!!!!!!! These are BCs for the 3D case !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL cmfe_BoundaryConditions_Initialise(BoundaryConditions,Err)
-    CALL cmfe_SolverEquations_BoundaryConditionsCreateStart(SolverEquationsFE,BoundaryConditions,Err)
+    CALL cmfe_SolverEquations_BoundaryConditionsCreateStart(SolverEquations,BoundaryConditions,Err)
     CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_BOTTOM_SURFACE,BottomSurfaceNodes,BottomNormalXi, &
       & Err)
     CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_LEFT_SURFACE,LeftSurfaceNodes,LeftNormalXi,Err)
