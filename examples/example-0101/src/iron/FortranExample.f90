@@ -81,7 +81,7 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   INTEGER(CMISSIntg)              ::    TIMESTEP    = 0
   REAL(CMISSRP),        PARAMETER ::    ORIGIN(3)   = [0.0_CMISSRP,0.0_CMISSRP,0.0_CMISSRP]       
   REAL(CMISSRP),        PARAMETER ::    ZERO        = 0.0_CMISSRP
-  REAL(CMISSRP),        PARAMETER ::    THICKNESS   = 0.0_CMISSRP
+  REAL(CMISSRP),        PARAMETER ::    THICKNESS   = 1.0_CMISSRP
   
   REAL(CMISSRP)         ::    LENGTH,WIDTH,HEIGHT          
   REAL(CMISSRP)         ::    EMODULE,NU,BCDISP_MAX     
@@ -265,6 +265,9 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
     CALL cmfe_Basis_QuadratureNumberOfGaussXiSet(Basis,[3,3],Err)   
   ENDIF
   
+  ! Checkpoint
+  WRITE(*,'(A)') "Basis OK."
+  
   CALL cmfe_Basis_CreateFinish(Basis,Err)
 
   ! Generated Mesh
@@ -281,7 +284,8 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
     CALL cmfe_GeneratedMesh_NumberOfElementsSet(GeneratedMesh,[NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS],Err)  
   ENDIF
   
-
+  ! Checkpoint
+  WRITE(*,'(A)') "Mesh OK."
 
   ! Mesh
   CALL cmfe_Mesh_Initialise(Mesh,Err)
@@ -319,6 +323,9 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
       & EquationsSetFieldUserNumber,EquationsSetField,EquationsSet,Err)
   ENDIF
   CALL cmfe_EquationsSet_CreateFinish(EquationsSet,Err)
+  
+  ! Checkpoint
+  WRITE(*,'(A)') "EQ-Set OK."
 
   ! Dependent field
   CALL cmfe_Field_Initialise(DependentField,Err)
@@ -330,6 +337,9 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
       CALL cmfe_Field_ComponentMeshComponentSet(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE,component_idx,1,Err)
   ENDDO
   CALL cmfe_EquationsSet_DependentCreateFinish(EquationsSet,Err)
+  
+  ! Checkpoint
+  WRITE(*,'(A)') "DependentField OK."
 
   ! Material field
   CALL cmfe_Field_Initialise(MaterialField,Err)
@@ -348,6 +358,9 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
     CALL cmfe_Field_ComponentValuesInitialise(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2,EMODULE,Err)
     CALL cmfe_Field_ComponentValuesInitialise(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,3,NU,Err) 
   ENDIF
+  
+  ! Checkpoint
+  WRITE(*,'(A)') "MaterialField OK."
 
   ! Equations
   CALL cmfe_Equations_Initialise(Equations,Err)
@@ -395,6 +408,9 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   ELSE
     CALL cmfe_Solver_LinearTypeSet(SOLVER,CMFE_SOLVER_LINEAR_DIRECT_SOLVE_TYPE,Err) !<Direct linear solver type.
   ENDIF
+  
+  ! Checkpoint
+  WRITE(*,'(A)') "Solver OK."
   
   CALL cmfe_Problem_SolversCreateFinish(Problem,Err)
 
@@ -493,6 +509,9 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
     ENDDO
     CALL cmfe_SolverEquations_BoundaryConditionsCreateFinish(SolverEquations,Err)
   ENDIF ! BC-SetUp
+  
+  ! Checkpoint
+  WRITE(*,'(A)') "BCs OK."
 
   ! Solve multiple timesteps
   CALL cmfe_Fields_Initialise(Fields,Err)
@@ -538,5 +557,15 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   CALL cmfe_Finalise(Err)
   WRITE(*,'(A)') "Program successfully completed."
   STOP
+  
+  CONTAINS
+  SUBROUTINE HANDLE_ERROR(ERROR_STRING)
+
+    CHARACTER(LEN=*), INTENT(IN) :: ERROR_STRING
+
+    WRITE(*,'(">>ERROR: ",A)') ERROR_STRING(1:LEN_TRIM(ERROR_STRING))
+    STOP
+
+  END SUBROUTINE HANDLE_ERROR
 
 END PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
