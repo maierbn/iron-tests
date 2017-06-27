@@ -477,7 +477,7 @@ PROGRAM MONODOMAINEXAMPLE
 
   !todo - get vm initialial value.
   CALL cmfe_Field_ComponentValuesInitialise(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1, &
-    & 75.0_CMISSRP,Err)
+    & -75.0_CMISSRP,Err)
   
   !Start the creation of the CellML models field
   CALL cmfe_Field_Initialise(CellMLModelsField,Err)
@@ -530,6 +530,7 @@ PROGRAM MONODOMAINEXAMPLE
   !turn stimulus on
   !DO node_idx=1,NUMBER_GLOBAL_X_ELEMENTS/2
   node_idx=INT((NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1)/2)
+  node_idx = INT(CEILING(DBLE((NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1))/2))
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,node_idx,1,NodeDomain,Err)
   IF(NodeDomain==ComputationalNodeNumber) THEN
     CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &

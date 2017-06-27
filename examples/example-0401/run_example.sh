@@ -12,6 +12,6 @@ cmake -DCMAKE_BUILD_TYPE=$folder -DOPENCMISS_BUILD_TYPE=$folder ..
 make
 cd ..
 echo "  running $folder"
-# <number elements X> <number elements Y> <interpolation type> <solver type> <PDE step size> <stop time> <output frequency> <CellML Model URL>
+# <number elements X> <number elements Y> <interpolation type> <solver type> <PDE step size> <stop time> <output frequency> <CellML Model URL> <slow-twitch> <ODE time-step>
 
-mkdir -p results/current_run/l1x1_n24x24_i1_s0 && ./$folder/src/example 24 24 1 0 0.05 0.5 10 hodgkin_huxley_1952.cellml T 0.001
+mkdir -p results/current_run/l1x1_n24x24_i1_s0 && ./$folder/src/example 24 24 1 0 0.05 0.5 1 hodgkin_huxley_1952.cellml F 0.001
