@@ -127,15 +127,29 @@ Harry Saini\footnotemark[1]
 %
 \subsection{Equation in general form}
 %
+The governing equation is,
+%
 \begin{equation}
-    \partial_t u + \nabla \cdot \nabla u = f
+    \partial_t u + \nabla \cdot [\boldsymbol{\sigma} \nabla u] = f,
 \end{equation}
 %
+with conductivity tensor $\boldsymbol{\sigma}$. The conductivity tensor is,
+%
+\begin{itemize}
+    \item{defined in material coordinates (fibre direction),}
+    \item{diagonal,}
+    \item{defined per element.}
+\end{itemize}
+%
 \input{examples/example-0001/doc/example}
+%
+\input{examples/example-0001-u/doc/example}
 %
 %\input{examples/example-0002-a/doc/example}
 %
 %\input{examples/example-0002-b/doc/example}
+%
+\input{examples/example-0011/doc/example}
 %
 %===============================================================================
 %
