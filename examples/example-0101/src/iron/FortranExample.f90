@@ -67,7 +67,7 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   INTEGER(CMISSIntg), PARAMETER :: BasisUserNumber=1
   INTEGER(CMISSIntg), PARAMETER :: MeshUserNumber=1
   INTEGER(CMISSIntg), PARAMETER :: DecompositionUserNumber=1
-  INTEGER(CMISSIntg), PARAMETER :: NumberOfXiCoordinates=2
+  INTEGER(CMISSIntg)            :: NumberOfXiCoordinates
   INTEGER(CMISSIntg), PARAMETER :: GeneratedMeshUserNumber=1
   INTEGER(CMISSIntg), PARAMETER :: FieldGeometryUserNumber=1
   INTEGER(CMISSIntg), PARAMETER :: FieldDependentUserNumber=2
@@ -195,10 +195,10 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NU
     IF((NU<=-1.0_CMISSRP) .OR. (NU>0.5_CMISSRP)) CALL HANDLE_ERROR("Invalid Poisson Ratio type specification.")
     ! BC -> Maximum Displacement in percent
-    CALL GET_COMMAND_ARGUMENT(9,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    CALL GET_COMMAND_ARGUMENT(11,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 11.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) BCDISP_MAX
-    IF(BCDISP_MAX<=1.0) CALL HANDLE_ERROR("Invalid BC specification.")
+    IF(BCDISP_MAX<=-1.0) CALL HANDLE_ERROR("Invalid BC specification.")
   ELSE
     !If there are not enough arguments default the problem specification 
     WIDTH                       = 160.0_CMISSRP
@@ -235,8 +235,10 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   ! Coordinate system
   IF(NUMBER_GLOBAL_Z_ELEMENTS >= 1) THEN
     NumberOfSpatialCoordinates=3
+    NumberOfXiCoordinates=3
   ELSE
     NumberOfSpatialCoordinates=2
+    NumberOfXiCoordinates=2
   ENDIF
   
   CALL cmfe_CoordinateSystem_Initialise(CoordinateSystem,Err)
