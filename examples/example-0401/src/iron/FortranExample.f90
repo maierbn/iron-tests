@@ -102,6 +102,7 @@ PROGRAM MONODOMAINEXAMPLE
 
   INTEGER(CMISSIntg) :: NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS,NUMBER_GLOBAL_Z_ELEMENTS
   INTEGER(CMISSIntg) :: SOLVER_TYPE, INTERPOLATION_TYPE, NUMBER_OF_GAUSS_XI
+  LOGICAL :: SLOW_TWITCH
 
   LOGICAL :: EXPORT_FIELD
 
@@ -208,6 +209,11 @@ PROGRAM MONODOMAINEXAMPLE
     !IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 8.")
     CellmlFile = adjustl(COMMAND_ARGUMENT)
     WRITE(*, '("CellML File: ", A)') TRIM(CellmlFile)
+    
+    ! 9th argument fast or slow twitch parameters of cellml model
+    CALL GET_COMMAND_ARGUMENT(9,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) SLOW_TWITCH
+    WRITE(*, '("Slow Twitch: ", L)') SLOW_TWITCH
 
     inquire(file=CellmlFile, exist=fileExist)
     if (.not. fileExist) then
@@ -240,7 +246,8 @@ PROGRAM MONODOMAINEXAMPLE
     PDE_TIME_STEP=0.05
     TIME_STOP=1.00
     OUTPUT_FREQUENCY=1
-    CellmlFile="n98.xml"
+    CellmlFile="hodgkin_huxley_1952_stim.cellml"
+    SLOW_TWITCH=.TRUE.
   ENDIF
 
   ! determine file name for output files
@@ -260,7 +267,7 @@ PROGRAM MONODOMAINEXAMPLE
   
 !  CALL cmfe_DiagnosticsSetOn(CMFE_IN_DIAG_TYPE,[1,2,3,4,5],"Diagnostics",["DOMAIN_MAPPINGS_LOCAL_FROM_GLOBAL_CALCULATE"],Err)
 
-  WRITE(Filename,'(A,"_",I0,"x",I0,"_T",F11.6)') "Monodomain",NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS, PDE_TIME_STEP
+  WRITE(Filename,'(A,"_",I0,"x",I0)') "Monodomain",NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS
   
   CALL cmfe_OutputSetOn(Filename,Err)
 
@@ -402,10 +409,16 @@ PROGRAM MONODOMAINEXAMPLE
   
   !Set Am
   CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1, &
-    & 193.6_CMISSRP,Err)
-  !Set Cm
+    & 500.0_CMISSRP,Err)
+  
+  IF(Slow_Twitch) THEN
+  !Set Cm, slow-twitch
   CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
-    & 0.014651_CMISSRP,Err)
+    & 0.58_CMISSRP,Err)
+  ELSE  
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
+    & 1.0_CMISSRP,Err)
+  ENDIF  
   !Set conductivity
   CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,3, &
     & CONDUCTIVITY,Err)
@@ -421,19 +434,24 @@ PROGRAM MONODOMAINEXAMPLE
   CALL cmfe_CellML_CreateStart(CellMLUserNumber,Region,CellML,Err)
   !Import a Noble 1998 model from a file
   CALL cmfe_CellML_ModelImport(CellML,CellmlFile,n98ModelIndex,Err)
-  CALL cmfe_CellML_VariableSetAsKnown(CellML,n98ModelIndex,"fast_sodium_current/g_Na ",Err)
-  CALL cmfe_CellML_VariableSetAsKnown(CellML,n98ModelIndex,"membrane/IStim",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_K1",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_to",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_K",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_K_ATP",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_Ca_L_K",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_b_K",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_NaK",Err)
+  
+  CALL cmfe_CellML_VariableSetAsKnown(CellML,n98ModelIndex,"membrane/i_Stim ",Err)
   CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_Na",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_b_Na",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_Ca_L_Na",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_NaCa",Err)
+  
+  
+  !CALL cmfe_CellML_VariableSetAsKnown(CellML,n98ModelIndex,"fast_sodium_current/g_Na ",Err)
+  !CALL cmfe_CellML_VariableSetAsKnown(CellML,n98ModelIndex,"membrane/IStim",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_K1",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_to",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_K",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_K_ATP",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_Ca_L_K",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_b_K",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_NaK",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_Na",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_b_Na",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_Ca_L_Na",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_NaCa",Err)
   !Finish the CellML environment
   CALL cmfe_CellML_CreateFinish(CellML,Err)
 
@@ -450,7 +468,7 @@ PROGRAM MONODOMAINEXAMPLE
 
   !todo - get vm initialial value.
   CALL cmfe_Field_ComponentValuesInitialise(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1, &
-    & -92.5_CMISSRP,Err)
+    & 75.0_CMISSRP,Err)
   
   !Start the creation of the CellML models field
   CALL cmfe_Field_Initialise(CellMLModelsField,Err)
@@ -499,7 +517,7 @@ PROGRAM MONODOMAINEXAMPLE
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,FirstNodeNumber,1,FirstNodeDomain,Err)
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,LastNodeNumber,1,LastNodeDomain,Err)
   
-  CALL cmfe_CellML_FieldComponentGet(CellML,n98ModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"membrane/IStim",stimcomponent,Err)
+  CALL cmfe_CellML_FieldComponentGet(CellML,n98ModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"membrane/i_Stim",stimcomponent,Err)
   !Set the Stimulus at half the bottom nodes
   DO node_idx=1,NUMBER_GLOBAL_X_ELEMENTS/2
     CALL cmfe_Decomposition_NodeDomainGet(Decomposition,node_idx,1,NodeDomain,Err)
@@ -510,22 +528,22 @@ PROGRAM MONODOMAINEXAMPLE
   ENDDO
   
   !Set up the g_Na gradient
-  CALL cmfe_CellML_FieldComponentGet(CellML,n98ModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"fast_sodium_current/g_Na", &
-    & gNacomponent,Err)
+  !CALL cmfe_CellML_FieldComponentGet(CellML,n98ModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"fast_sodium_current/g_Na", &
+  !  & gNacomponent,Err)
   !Loop over the nodes
-  DO node_idx=1,LastNodeNumber
-    CALL cmfe_Decomposition_NodeDomainGet(Decomposition,node_idx,1,NodeDomain,Err)
-    IF(NodeDomain==ComputationalNodeNumber) THEN
-      CALL cmfe_Field_ParameterSetGetNode(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1,node_idx,1, &
-        & X,Err)
-      CALL cmfe_Field_ParameterSetGetNode(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1,node_idx,2, &
-        & Y,Err)
-      DISTANCE=SQRT(X**2+Y**2)/SQRT(2.0_CMISSRP)
-      gNa_VALUE=2.0_CMISSRP*(DISTANCE+0.5_CMISSRP)*385.5e-3_CMISSRP
-      CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
-        & node_idx,gNacomponent,gNa_VALUE,Err)
-    ENDIF
-  ENDDO
+  !DO node_idx=1,LastNodeNumber
+  !  CALL cmfe_Decomposition_NodeDomainGet(Decomposition,node_idx,1,NodeDomain,Err)
+  !  IF(NodeDomain==ComputationalNodeNumber) THEN
+  !    CALL cmfe_Field_ParameterSetGetNode(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1,node_idx,1, &
+  !      & X,Err)
+  !    CALL cmfe_Field_ParameterSetGetNode(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1,node_idx,2, &
+  !      & Y,Err)
+  !    DISTANCE=SQRT(X**2+Y**2)/SQRT(2.0_CMISSRP)
+  !    gNa_VALUE=2.0_CMISSRP*(DISTANCE+0.5_CMISSRP)*385.5e-3_CMISSRP
+  !    CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
+  !      & node_idx,gNacomponent,gNa_VALUE,Err)
+  !  ENDIF
+  !ENDDO
   
   !Start the creation of a problem.
   CALL cmfe_Problem_Initialise(Problem,Err)
