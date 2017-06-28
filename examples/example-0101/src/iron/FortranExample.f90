@@ -63,12 +63,11 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
 
   !Test program parameters
   INTEGER(CMISSIntg), PARAMETER :: CoordinateSystemUserNumber=1
-  INTEGER(CMISSIntg), PARAMETER :: NumberOfSpatialCoordinates=2
   INTEGER(CMISSIntg), PARAMETER :: RegionUserNumber=1
   INTEGER(CMISSIntg), PARAMETER :: BasisUserNumber=1
   INTEGER(CMISSIntg), PARAMETER :: MeshUserNumber=1
   INTEGER(CMISSIntg), PARAMETER :: DecompositionUserNumber=1
-  INTEGER(CMISSIntg), PARAMETER :: NumberOfXiCoordinates=2
+  INTEGER(CMISSIntg)            :: NumberOfXiCoordinates
   INTEGER(CMISSIntg), PARAMETER :: GeneratedMeshUserNumber=1
   INTEGER(CMISSIntg), PARAMETER :: FieldGeometryUserNumber=1
   INTEGER(CMISSIntg), PARAMETER :: FieldDependentUserNumber=2
@@ -76,20 +75,25 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   INTEGER(CMISSIntg), PARAMETER :: EquationSetUserNumber=1
   INTEGER(CMISSIntg), PARAMETER :: EquationsSetFieldUserNumber=4
   INTEGER(CMISSIntg), PARAMETER :: ProblemUserNumber=1
+  INTEGER(CMISSIntg)            :: NumberOfSpatialCoordinates
 
   INTEGER(CMISSIntg),   PARAMETER ::    TIMESTEPS   = 5
   INTEGER(CMISSIntg)              ::    TIMESTEP    = 0
-  REAL(CMISSRP),        PARAMETER ::    ORIGIN(3)   = [0.0_CMISSRP,0.0_CMISSRP,0.0_CMISSRP]
-  REAL(CMISSRP),        PARAMETER ::    LENGTH      = 120.0_CMISSRP
-  REAL(CMISSRP),        PARAMETER ::    WIDTH       = 160.0_CMISSRP
+  REAL(CMISSRP),        PARAMETER ::    ORIGIN(3)   = [0.0_CMISSRP,0.0_CMISSRP,0.0_CMISSRP]       
   REAL(CMISSRP),        PARAMETER ::    ZERO        = 0.0_CMISSRP
   REAL(CMISSRP),        PARAMETER ::    THICKNESS   = 1.0_CMISSRP
-  REAL(CMISSRP),        PARAMETER ::    EMODULE     = 10000.0_CMISSRP!10.0E3_CMISSRP
-  REAL(CMISSRP),        PARAMETER ::    NU          = 0.3_CMISSRP
-  REAL(CMISSRP)                   ::    BCDISP      = 0.0_CMISSRP
+  
+  REAL(CMISSRP)         ::    LENGTH,WIDTH,HEIGHT          
+  REAL(CMISSRP)         ::    EMODULE,NU,BCDISP_MAX     
+  INTEGER(CMISSIntg)    ::    INTERPOLATION_TYPE,SOLVER_TYPE        
+  REAL(CMISSRP)         ::    BCDISP      = 0.0_CMISSRP
+  
+  !INTEGER(CMISSIntg),   PARAMETER ::    NUMBER_OF_ARGUMENTS = 11
 
   !Program variables
-  INTEGER(CMISSIntg)                :: NumberGlobalXElements,NumberGlobalYElements
+  INTEGER(CMISSIntg)                :: NUMBER_OF_ARGUMENTS,ARGUMENT_LENGTH,STATUS
+  INTEGER(CMISSIntg)                :: NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS,NUMBER_GLOBAL_Z_ELEMENTS
+  CHARACTER(LEN=255)                :: COMMAND_ARGUMENT
   INTEGER(CMISSIntg)                :: MPI_IERROR
   INTEGER(CMISSIntg)                :: EquationsSetIndex
   INTEGER(CMISSIntg)                :: NumberOfComputationalNodes,ComputationalNodeNumber
@@ -97,7 +101,8 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   INTEGER(CMISSIntg),ALLOCATABLE    :: FrontSurfaceNodes(:)
   INTEGER(CMISSIntg),ALLOCATABLE    :: LeftSurfaceNodes(:)
   INTEGER(CMISSIntg),ALLOCATABLE    :: RightSurfaceNodes(:)
-  INTEGER(CMISSIntg)                :: LeftNormalXi,RightNormalXi,FrontNormalXi
+  INTEGER(CMISSIntg),ALLOCATABLE    :: BottomSurfaceNodes(:)
+  INTEGER(CMISSIntg)                :: LeftNormalXi,RightNormalXi,FrontNormalXi,BottomNormalXi
   CHARACTER(LEN=256)                :: filename
 
   !CMISS variables
@@ -140,13 +145,85 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   IF(.NOT.QUICKWIN_STATUS) QUICKWIN_STATUS=SETWINDOWCONFIG(QUICKWIN_WINDOW_CONFIG)
 #endif
 
+!!!!!!!! Command Line Interface !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  NUMBER_OF_ARGUMENTS = COMMAND_ARGUMENT_COUNT()
+  IF(NUMBER_OF_ARGUMENTS >= 11) THEN
+    ! get extents of spatial domain
+    CALL GET_COMMAND_ARGUMENT(1,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 1.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) WIDTH
+    IF(WIDTH<=0) CALL HANDLE_ERROR("Invalid width.")
+    CALL GET_COMMAND_ARGUMENT(2,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 2.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) HEIGHT
+    IF(HEIGHT<=0) CALL HANDLE_ERROR("Invalid height.")
+    CALL GET_COMMAND_ARGUMENT(3,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 3.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) LENGTH
+    IF(LENGTH<0) CALL HANDLE_ERROR("Invalid length.")
+    ! number of elements in each coordinate direction
+    CALL GET_COMMAND_ARGUMENT(4,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 4.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_X_ELEMENTS
+    IF(NUMBER_GLOBAL_X_ELEMENTS<=0) CALL HANDLE_ERROR("Invalid number of X elements.")
+    CALL GET_COMMAND_ARGUMENT(5,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 5.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_Y_ELEMENTS
+    IF(NUMBER_GLOBAL_Y_ELEMENTS<=0) CALL HANDLE_ERROR("Invalid number of Y elements.")
+    CALL GET_COMMAND_ARGUMENT(6,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 6.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_Z_ELEMENTS
+    IF(NUMBER_GLOBAL_Z_ELEMENTS<0) CALL HANDLE_ERROR("Invalid number of Z elements.")
+    ! interpolation type (linear, quadratic
+    CALL GET_COMMAND_ARGUMENT(7,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 7.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) INTERPOLATION_TYPE
+    IF(INTERPOLATION_TYPE<=0) CALL HANDLE_ERROR("Invalid interpolation specification.")
+    ! solver type (0: direct linear solve,1: linear iterative solve)
+    CALL GET_COMMAND_ARGUMENT(8,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 8.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) SOLVER_TYPE
+    IF((SOLVER_TYPE<0).OR.(SOLVER_TYPE>1)) CALL HANDLE_ERROR("Invalid solver type specification.")
+    ! Material Parameter -> E-Modulus
+    CALL GET_COMMAND_ARGUMENT(9,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 9.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) EMODULE
+    IF(EMODULE<=0) CALL HANDLE_ERROR("Invalid E-Module type specification.")
+    ! Material Parameter -> Poisson Ratio
+    CALL GET_COMMAND_ARGUMENT(10,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 10.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NU
+    IF((NU<=-1.0_CMISSRP) .OR. (NU>0.5_CMISSRP)) CALL HANDLE_ERROR("Invalid Poisson Ratio type specification.")
+    ! BC -> Maximum Displacement in percent
+    CALL GET_COMMAND_ARGUMENT(11,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 11.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) BCDISP_MAX
+    IF(BCDISP_MAX<=-1.0) CALL HANDLE_ERROR("Invalid BC specification.")
+  ELSE
+    !If there are not enough arguments default the problem specification 
+    WIDTH                       = 160.0_CMISSRP
+    HEIGHT                      = 120.0_CMISSRP
+    LENGTH                      = 0.0_CMISSRP
+    NUMBER_GLOBAL_X_ELEMENTS    = 4
+    NUMBER_GLOBAL_Y_ELEMENTS    = 4
+    NUMBER_GLOBAL_Z_ELEMENTS    = 0
+    INTERPOLATION_TYPE          = CMFE_BASIS_LINEAR_LAGRANGE_INTERPOLATION
+    SOLVER_TYPE                 = 0
+    EMODULE                     = 10000.0_CMISSRP
+    NU                          = 0.3_CMISSRP
+    BCDISP_MAX                  = 0.1_CMISSRP
+  ENDIF
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
   ! Intialise cmiss
   CALL cmfe_Initialise(WorldCoordinateSystem,WorldRegion,Err)
   CALL cmfe_ErrorHandlingModeSet(CMFE_ERRORS_TRAP_ERROR,Err)
 
   WRITE(*,'(A)') "Program starting."
-  NumberGlobalXElements=4
-  NumberGlobalYElements=4
+  !NumberGlobalXElements=4
+  !NumberGlobalYElements=4
 
   ! Set all diganostic levels on for testing
   CALL cmfe_DiagnosticsSetOn(CMFE_FROM_DIAG_TYPE,[1,2,3,4,5],"Diagnostics",["PROBLEM_FINITE_ELEMENT_CALCULATE"],Err)
@@ -156,6 +233,14 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   CALL cmfe_ComputationalNodeNumberGet(ComputationalNodeNumber,Err)
 
   ! Coordinate system
+  IF(NUMBER_GLOBAL_Z_ELEMENTS >= 1) THEN
+    NumberOfSpatialCoordinates=3
+    NumberOfXiCoordinates=3
+  ELSE
+    NumberOfSpatialCoordinates=2
+    NumberOfXiCoordinates=2
+  ENDIF
+  
   CALL cmfe_CoordinateSystem_Initialise(CoordinateSystem,Err)
   CALL cmfe_CoordinateSystem_CreateStart(CoordinateSystemUserNumber,CoordinateSystem,Err)
   CALL cmfe_CoordinateSystem_TypeSet(CoordinateSystem,CMFE_COORDINATE_RECTANGULAR_CARTESIAN_TYPE,Err)
@@ -174,9 +259,17 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   CALL cmfe_Basis_CreateStart(BasisUserNumber,Basis,Err)
   CALL cmfe_Basis_TypeSet(Basis,CMFE_BASIS_LAGRANGE_HERMITE_TP_TYPE,Err)
   CALL cmfe_Basis_NumberOfXiSet(Basis,NumberOfXiCoordinates,Err)
-  CALL cmfe_Basis_InterpolationXiSet(Basis, &
-    & [CMFE_BASIS_LINEAR_LAGRANGE_INTERPOLATION,CMFE_BASIS_LINEAR_LAGRANGE_INTERPOLATION],Err)
-  CALL cmfe_Basis_QuadratureNumberOfGaussXiSet(Basis,[3,3],Err)
+  IF(NUMBER_GLOBAL_Z_ELEMENTS >= 1) THEN ! 3D
+    CALL cmfe_Basis_InterpolationXiSet(Basis,[INTERPOLATION_TYPE,INTERPOLATION_TYPE,INTERPOLATION_TYPE],Err)  
+    CALL cmfe_Basis_QuadratureNumberOfGaussXiSet(Basis,[3,3,3],Err) 
+  ELSE ! 2D
+    CALL cmfe_Basis_InterpolationXiSet(Basis, [INTERPOLATION_TYPE,INTERPOLATION_TYPE],Err) 
+    CALL cmfe_Basis_QuadratureNumberOfGaussXiSet(Basis,[3,3],Err)   
+  ENDIF
+  
+  ! Checkpoint
+  WRITE(*,'(A)') "Basis OK."
+  
   CALL cmfe_Basis_CreateFinish(Basis,Err)
 
   ! Generated Mesh
@@ -184,8 +277,17 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   CALL cmfe_GeneratedMesh_CreateStart(GeneratedMeshUserNumber,Region,GeneratedMesh,Err)
   CALL cmfe_GeneratedMesh_TypeSet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_MESH_TYPE,Err)
   CALL cmfe_GeneratedMesh_BasisSet(GeneratedMesh,Basis,Err)
-  CALL cmfe_GeneratedMesh_ExtentSet(GeneratedMesh,[WIDTH,LENGTH],Err)
-  CALL cmfe_GeneratedMesh_NumberOfElementsSet(GeneratedMesh,[NumberGlobalXElements,NumberGlobalYElements],Err)
+  IF(NUMBER_GLOBAL_Z_ELEMENTS >= 1) THEN ! 3D
+    CALL cmfe_GeneratedMesh_ExtentSet(GeneratedMesh,[WIDTH,HEIGHT,LENGTH],Err)
+    CALL cmfe_GeneratedMesh_NumberOfElementsSet(GeneratedMesh,[NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS, &
+      & NUMBER_GLOBAL_Z_ELEMENTS],Err)
+  ELSE ! 2D
+    CALL cmfe_GeneratedMesh_ExtentSet(GeneratedMesh,[WIDTH,HEIGHT],Err)
+    CALL cmfe_GeneratedMesh_NumberOfElementsSet(GeneratedMesh,[NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS],Err)  
+  ENDIF
+  
+  ! Checkpoint
+  WRITE(*,'(A)') "Mesh OK."
 
   ! Mesh
   CALL cmfe_Mesh_Initialise(Mesh,Err)
@@ -209,32 +311,58 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
 
   ! Equations set
   CALL cmfe_Field_Initialise(EquationsSetField,Err)
-  CALL cmfe_EquationsSet_CreateStart(EquationSetUserNumber,Region,GeometricField, &
-    & [CMFE_EQUATIONS_SET_ELASTICITY_CLASS, &
-    &  CMFE_EQUATIONS_SET_LINEAR_ELASTICITY_TYPE, &
-    & CMFE_EQUATIONS_SET_TWO_DIMENSIONAL_PLANE_STRESS_SUBTYPE], &
-    & EquationsSetFieldUserNumber,EquationsSetField,EquationsSet,Err)
+  IF(NumberOfSpatialCoordinates==3) THEN ! 3D
+    CALL cmfe_EquationsSet_CreateStart(EquationSetUserNumber,Region,GeometricField, &
+      & [CMFE_EQUATIONS_SET_ELASTICITY_CLASS, &
+      &  CMFE_EQUATIONS_SET_LINEAR_ELASTICITY_TYPE, &
+      & CMFE_EQUATIONS_SET_THREE_DIMENSIONAL_SUBTYPE], &
+      & EquationsSetFieldUserNumber,EquationsSetField,EquationsSet,Err) 
+  ELSE                                    ! 2D
+    CALL cmfe_EquationsSet_CreateStart(EquationSetUserNumber,Region,GeometricField, &
+      & [CMFE_EQUATIONS_SET_ELASTICITY_CLASS, &
+      &  CMFE_EQUATIONS_SET_LINEAR_ELASTICITY_TYPE, &
+      & CMFE_EQUATIONS_SET_TWO_DIMENSIONAL_PLANE_STRESS_SUBTYPE], &
+      & EquationsSetFieldUserNumber,EquationsSetField,EquationsSet,Err)
+  ENDIF
   CALL cmfe_EquationsSet_CreateFinish(EquationsSet,Err)
+  
+  ! Checkpoint
+  WRITE(*,'(A)') "EQ-Set OK."
 
   ! Dependent field
   CALL cmfe_Field_Initialise(DependentField,Err)
   CALL cmfe_EquationsSet_DependentCreateStart(EquationsSet,FieldDependentUserNumber,DependentField,Err)
   CALL cmfe_Field_VariableLabelSet(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,"Displacement",Err)
   CALL cmfe_Field_VariableLabelSet(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE,"Displacement (derivative)",Err)
-  DO component_idx=1,2
+  DO component_idx=1,NumberOfSpatialCoordinates
       CALL cmfe_Field_ComponentMeshComponentSet(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,component_idx,1,Err)
       CALL cmfe_Field_ComponentMeshComponentSet(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE,component_idx,1,Err)
   ENDDO
   CALL cmfe_EquationsSet_DependentCreateFinish(EquationsSet,Err)
+  
+  ! Checkpoint
+  WRITE(*,'(A)') "DependentField OK."
 
   ! Material field
   CALL cmfe_Field_Initialise(MaterialField,Err)
   CALL cmfe_EquationsSet_MaterialsCreateStart(EquationsSet,FieldMaterialUserNumber,MaterialField,Err)
   CALL cmfe_Field_VariableLabelSet(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,"Material",Err)
   CALL cmfe_EquationsSet_MaterialsCreateFinish(EquationsSet,Err)
-  CALL cmfe_Field_ComponentValuesInitialise(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,THICKNESS,Err)
-  CALL cmfe_Field_ComponentValuesInitialise(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2,EMODULE,Err)
-  CALL cmfe_Field_ComponentValuesInitialise(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,3,NU,Err)
+  IF(NumberOfSpatialCoordinates==3) THEN  ! 3D
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,EMODULE,Err) ! E11
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2,EMODULE,Err) ! E22 
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,3,EMODULE,Err) ! E33
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,4,NU,Err)      !v13
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,5,NU,Err)      !v23
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,6,NU,Err)      !v12
+  ELSE ! 2D
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,THICKNESS,Err)
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2,EMODULE,Err)
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,3,NU,Err) 
+  ENDIF
+  
+  ! Checkpoint
+  WRITE(*,'(A)') "MaterialField OK."
 
   ! Equations
   CALL cmfe_Equations_Initialise(Equations,Err)
@@ -273,9 +401,19 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
                                       !CMFE_SOLVER_MATRIX_OUTPUT !<Solver matrices output from the solver routines plus below.
 !  CALL cmfe_Solver_LibraryTypeSet(SOLVER,CMFE_SOLVER_PETSC_LIBRARY,Err)
 !  CALL cmfe_Solver_LinearTypeSet(SOLVER,CMFE_SOLVER_LINEAR_ITERATIVE_SOLVE_TYPE,Err)
-  CALL cmfe_Solver_LinearTypeSet(SOLVER,CMFE_SOLVER_LINEAR_DIRECT_SOLVE_TYPE ,Err)
-                                      !CMFE_SOLVER_LINEAR_DIRECT_SOLVE_TYPE    !<Direct linear solver type.
-                                      !CMFE_SOLVER_LINEAR_ITERATIVE_SOLVE_TYPE !<Iterative linear solver type.
+
+  ! Chose Solver Type
+  IF(SOLVER_TYPE==0) THEN
+    CALL cmfe_Solver_LinearTypeSet(SOLVER,CMFE_SOLVER_LINEAR_DIRECT_SOLVE_TYPE,Err) !<Direct linear solver type.
+  ELSEIF(SOLVER_TYPE==1) THEN
+    CALL cmfe_Solver_LinearTypeSet(SOLVER,CMFE_SOLVER_LINEAR_ITERATIVE_SOLVE_TYPE,Err) !<Iterative linear solver type.
+  ELSE
+    CALL cmfe_Solver_LinearTypeSet(SOLVER,CMFE_SOLVER_LINEAR_DIRECT_SOLVE_TYPE,Err) !<Direct linear solver type.
+  ENDIF
+  
+  ! Checkpoint
+  WRITE(*,'(A)') "Solver OK."
+  
   CALL cmfe_Problem_SolversCreateFinish(Problem,Err)
 
   ! Solver equations
@@ -291,40 +429,91 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   CALL cmfe_Problem_SolverEquationsCreateFinish(Problem,Err)
 
   ! Boundary conditions
-  CALL cmfe_BoundaryConditions_Initialise(BoundaryConditions,Err)
-  CALL cmfe_SolverEquations_BoundaryConditionsCreateStart(SolverEquations,BoundaryConditions,Err)
-  CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_FRONT_SURFACE,FrontSurfaceNodes,FrontNormalXi, &
-    & Err)
-  CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_LEFT_SURFACE,LeftSurfaceNodes,LeftNormalXi,Err)
-  CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_RIGHT_SURFACE,RightSurfaceNodes,RightNormalXi,Err)
-  !Set x=0 nodes to no x displacment in x. Set x=WIDTH nodes to 0% x displacement
-  DO node_idx=1,SIZE(LeftSurfaceNodes,1)
-    NodeNumber=LeftSurfaceNodes(node_idx)
-    CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-    IF(NodeDomain==ComputationalNodeNumber) THEN
-      CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,1, &
-        & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
-    ENDIF
-  ENDDO
-  DO node_idx=1,SIZE(RightSurfaceNodes,1)
-    NodeNumber=RightSurfaceNodes(node_idx)
-    CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-    IF(NodeDomain==ComputationalNodeNumber) THEN
-      CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,1, &
-        & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
-    ENDIF
-  ENDDO
-  !Set y=0 nodes to no y displacement
-  DO node_idx=1,SIZE(FrontSurfaceNodes,1)
-    NodeNumber=FrontSurfaceNodes(node_idx)
-    WRITE(*,*) NodeNumber
-    CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-    IF(NodeDomain==ComputationalNodeNumber) THEN
-      CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,2, &
-        & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
-    ENDIF
-  ENDDO
-  CALL cmfe_SolverEquations_BoundaryConditionsCreateFinish(SolverEquations,Err)
+  IF(NumberOfSpatialCoordinates==3) THEN !!!!!!!!!!!!!!!!!!!! These are BCs for the 3D case !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    CALL cmfe_BoundaryConditions_Initialise(BoundaryConditions,Err)
+    CALL cmfe_SolverEquations_BoundaryConditionsCreateStart(SolverEquations,BoundaryConditions,Err)
+    CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_BOTTOM_SURFACE,BottomSurfaceNodes,BottomNormalXi, &
+      & Err)
+    CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_LEFT_SURFACE,LeftSurfaceNodes,LeftNormalXi,Err)
+    CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_RIGHT_SURFACE,RightSurfaceNodes,RightNormalXi,Err)
+    CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_FRONT_SURFACE,FrontSurfaceNodes,FrontNormalXi,Err)
+    !Set x=0 nodes to no x displacment in x. Set x=WIDTH nodes to 0% x displacement
+    DO node_idx=1,SIZE(LeftSurfaceNodes,1)
+      NodeNumber=LeftSurfaceNodes(node_idx)
+      CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+      IF(NodeDomain==ComputationalNodeNumber) THEN
+        CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,1, &
+          & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
+      ENDIF
+    ENDDO
+    DO node_idx=1,SIZE(RightSurfaceNodes,1)
+      NodeNumber=RightSurfaceNodes(node_idx)
+      CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+      IF(NodeDomain==ComputationalNodeNumber) THEN
+        CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,1, &
+          & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
+      ENDIF
+    ENDDO
+    !Set y=0 nodes to no y displacement
+    DO node_idx=1,SIZE(FrontSurfaceNodes,1)
+      NodeNumber=FrontSurfaceNodes(node_idx)
+      WRITE(*,*) NodeNumber
+      CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+      IF(NodeDomain==ComputationalNodeNumber) THEN
+        CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,2, &
+          & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
+      ENDIF
+    ENDDO
+    !Set z=0 nodes to no z displacement
+    DO node_idx=1,SIZE(BottomSurfaceNodes,1)
+      NodeNumber=BottomSurfaceNodes(node_idx)
+      WRITE(*,*) NodeNumber
+      CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+      IF(NodeDomain==ComputationalNodeNumber) THEN
+        CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,3, &
+          & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
+      ENDIF
+    ENDDO
+    CALL cmfe_SolverEquations_BoundaryConditionsCreateFinish(SolverEquations,Err)
+  ELSE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! These are BCs for the 2D case !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    CALL cmfe_BoundaryConditions_Initialise(BoundaryConditions,Err)
+    CALL cmfe_SolverEquations_BoundaryConditionsCreateStart(SolverEquations,BoundaryConditions,Err)
+    CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_FRONT_SURFACE,FrontSurfaceNodes,FrontNormalXi, &
+      & Err)
+    CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_LEFT_SURFACE,LeftSurfaceNodes,LeftNormalXi,Err)
+    CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_RIGHT_SURFACE,RightSurfaceNodes,RightNormalXi,Err)
+    !Set x=0 nodes to no x displacment in x. Set x=WIDTH nodes to 0% x displacement
+    DO node_idx=1,SIZE(LeftSurfaceNodes,1)
+      NodeNumber=LeftSurfaceNodes(node_idx)
+      CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+      IF(NodeDomain==ComputationalNodeNumber) THEN
+        CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,1, &
+          & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
+      ENDIF
+    ENDDO
+    DO node_idx=1,SIZE(RightSurfaceNodes,1)
+      NodeNumber=RightSurfaceNodes(node_idx)
+      CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+      IF(NodeDomain==ComputationalNodeNumber) THEN
+        CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,1, &
+          & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
+      ENDIF
+    ENDDO
+    !Set y=0 nodes to no y displacement
+    DO node_idx=1,SIZE(FrontSurfaceNodes,1)
+      NodeNumber=FrontSurfaceNodes(node_idx)
+      WRITE(*,*) NodeNumber
+      CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+      IF(NodeDomain==ComputationalNodeNumber) THEN
+        CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,2, &
+          & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
+      ENDIF
+    ENDDO
+    CALL cmfe_SolverEquations_BoundaryConditionsCreateFinish(SolverEquations,Err)
+  ENDIF ! BC-SetUp
+  
+  ! Checkpoint
+  WRITE(*,'(A)') "BCs OK."
 
   ! Solve multiple timesteps
   CALL cmfe_Fields_Initialise(Fields,Err)
@@ -332,8 +521,8 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   DO TIMESTEP=1,TIMESTEPS
     WRITE(*,*) "TIME STEP ",TIMESTEP,"/",TIMESTEPS
     ! update BCs - move right surface nodes in positive x-direction
-    !BCDISP = 0.1*WIDTH*(TIMESTEP)/TIMESTEPS
-    BCDISP = 0.1_CMISSRP*WIDTH*(TIMESTEP-1)/(TIMESTEPS-1)
+    !BCDISP = 0.1_CMISSRP*WIDTH*(TIMESTEP-1)/(TIMESTEPS-1)
+    BCDISP = BCDISP_MAX*WIDTH*(TIMESTEP-1)/(TIMESTEPS-1)
     DO node_idx=1,SIZE(RightSurfaceNodes,1)
       NodeNumber=RightSurfaceNodes(node_idx)
       CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
@@ -370,5 +559,15 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   CALL cmfe_Finalise(Err)
   WRITE(*,'(A)') "Program successfully completed."
   STOP
+  
+  CONTAINS
+  SUBROUTINE HANDLE_ERROR(ERROR_STRING)
+
+    CHARACTER(LEN=*), INTENT(IN) :: ERROR_STRING
+
+    WRITE(*,'(">>ERROR: ",A)') ERROR_STRING(1:LEN_TRIM(ERROR_STRING))
+    STOP
+
+  END SUBROUTINE HANDLE_ERROR
 
 END PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
