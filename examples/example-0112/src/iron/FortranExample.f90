@@ -437,6 +437,8 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
     CALL cmfe_SolverEquations_BoundaryConditionsCreateStart(SolverEquations,BoundaryConditions,Err)
     CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_LEFT_SURFACE,LeftSurfaceNodes,LeftNormalXi,Err)
     CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_RIGHT_SURFACE,RightSurfaceNodes,RightNormalXi,Err)
+    CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_BOTTOM_SURFACE,BottomSurfaceNodes,BottomNormalXi, &
+      & Err)
     !Set Left Side to Zero Displacement in each direction
     DO node_idx=1,SIZE(LeftSurfaceNodes,1) ! x-direction
       NodeNumber=LeftSurfaceNodes(node_idx)
@@ -454,28 +456,12 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
           & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
       ENDIF
     ENDDO 
-    DO node_idx=1,SIZE(LeftSurfaceNodes,1) !z-direction
-      NodeNumber=LeftSurfaceNodes(node_idx)
-      CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-      IF(NodeDomain==ComputationalNodeNumber) THEN
-        CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,3, &
-          & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
-      ENDIF
-    ENDDO
-    ! On the Right Side apply Dirichlet BC in x and z-Direction + Neuman BC in y-Direction
+    ! On the Right Side apply Dirichlet BC in x -Direction + Neuman BC in y-Direction
     DO node_idx=1,SIZE(RightSurfaceNodes,1) !x-direction
       NodeNumber=RightSurfaceNodes(node_idx)
       CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
       IF(NodeDomain==ComputationalNodeNumber) THEN
         CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,1, &
-          & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
-      ENDIF
-    ENDDO   
-    DO node_idx=1,SIZE(RightSurfaceNodes,1) !z-direction
-      NodeNumber=RightSurfaceNodes(node_idx)
-      CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-      IF(NodeDomain==ComputationalNodeNumber) THEN
-        CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,3, &
           & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
       ENDIF
     ENDDO   
@@ -488,7 +474,15 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
           & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
       ENDIF
     ENDDO
-    
+    ! Fix Bottom Side in Z-Direction
+    DO node_idx=1,SIZE(BottomSurfaceNodes,1) ! z-Direction
+      NodeNumber=BottomSurfaceNodes(node_idx)
+      CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+      IF(NodeDomain==ComputationalNodeNumber) THEN
+        CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,3, &
+          & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
+      ENDIF
+    ENDDO   
     CALL cmfe_SolverEquations_BoundaryConditionsCreateFinish(SolverEquations,Err)
   ELSE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! These are BCs for the 2D case !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CALL cmfe_BoundaryConditions_Initialise(BoundaryConditions,Err)

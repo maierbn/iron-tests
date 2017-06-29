@@ -438,7 +438,9 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
     CALL cmfe_SolverEquations_BoundaryConditionsCreateStart(SolverEquations,BoundaryConditions,Err)
     CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_LEFT_SURFACE,LeftSurfaceNodes,LeftNormalXi,Err)
     CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_RIGHT_SURFACE,RightSurfaceNodes,RightNormalXi,Err)
-    !Set Left and Right Side to zero displacement in each direction
+    CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_BOTTOM_SURFACE,BottomSurfaceNodes,BottomNormalXi, &
+      & Err)
+    !Set Left and Right Side to zero displacement x and y direction
     DO node_idx=1,SIZE(LeftSurfaceNodes,1) !x-Direction
       NodeNumber=LeftSurfaceNodes(node_idx)
       CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
@@ -452,14 +454,6 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
       CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
       IF(NodeDomain==ComputationalNodeNumber) THEN
         CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,2, &
-          & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
-      ENDIF
-    ENDDO
-    DO node_idx=1,SIZE(LeftSurfaceNodes,1) !z-Direction
-      NodeNumber=LeftSurfaceNodes(node_idx)
-      CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-      IF(NodeDomain==ComputationalNodeNumber) THEN
-        CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,3, &
           & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
       ENDIF
     ENDDO
@@ -479,8 +473,9 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
           & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
       ENDIF
     ENDDO
-    DO node_idx=1,SIZE(RightSurfaceNodes,1) ! z-Direction
-      NodeNumber=RightSurfaceNodes(node_idx)
+    ! Fix Bottom Side in Z-Direction
+    DO node_idx=1,SIZE(BottomSurfaceNodes,1) ! z-Direction
+      NodeNumber=BottomSurfaceNodes(node_idx)
       CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
       IF(NodeDomain==ComputationalNodeNumber) THEN
         CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,3, &
