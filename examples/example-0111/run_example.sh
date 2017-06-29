@@ -13,4 +13,4 @@ make
 cd ..
 echo "  running $folder"
 #mkdir -p results/current_run && ./$folder/src/example
-mkdir -p results/current_run && ./$folder/src/example 100 100 100 2 2 2 1 0 10000 0.3 0.1
+mkdir -p results/current_run && ./$folder/src/example 160 120 120 4 3 3 1 0 10000 0.3 2000000
