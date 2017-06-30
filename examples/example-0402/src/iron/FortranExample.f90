@@ -72,7 +72,6 @@ PROGRAM MONODOMAINEXAMPLE
 
   REAL(CMISSRP), PARAMETER :: HEIGHT=1.0_CMISSRP
   REAL(CMISSRP), PARAMETER :: WIDTH=1.0_CMISSRP
-  REAL(CMISSRP), PARAMETER :: LENGTH=1.0_CMISSRP
 
   INTEGER(CMISSIntg), PARAMETER :: CoordinateSystemUserNumber=1
   INTEGER(CMISSIntg), PARAMETER :: RegionUserNumber=2
@@ -100,7 +99,7 @@ PROGRAM MONODOMAINEXAMPLE
   CHARACTER(LEN=25500) :: COMMAND_ARGUMENT,CellmlFile,Filename
   LOGICAL :: fileExist
 
-  INTEGER(CMISSIntg) :: NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS,NUMBER_GLOBAL_Z_ELEMENTS
+  INTEGER(CMISSIntg) :: NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS
   INTEGER(CMISSIntg) :: SOLVER_TYPE, INTERPOLATION_TYPE, NUMBER_OF_GAUSS_XI
   LOGICAL :: SLOW_TWITCH
 
@@ -108,7 +107,7 @@ PROGRAM MONODOMAINEXAMPLE
 
   INTEGER(CMISSIntg) :: n98ModelIndex
 
-  INTEGER(CMISSIntg) :: gNacomponent,stimcomponent,node_idx
+  INTEGER(CMISSIntg) :: gNacomponent,StimComponent,node_idx
 
   REAL(CMISSRP) :: X,Y,DISTANCE,gNa_VALUE
   
@@ -168,12 +167,14 @@ PROGRAM MONODOMAINEXAMPLE
     CALL GET_COMMAND_ARGUMENT(1,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 1.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_X_ELEMENTS
+    NUMBER_GLOBAL_X_ELEMENTS = (NUMBER_GLOBAL_X_ELEMENTS/2)*2   ! make value even
     WRITE(*, '("Number X elements: ", I0)') NUMBER_GLOBAL_X_ELEMENTS
 
     ! second argument: Y elements
     CALL GET_COMMAND_ARGUMENT(2,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 2.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_Y_ELEMENTS
+    NUMBER_GLOBAL_Y_ELEMENTS = (NUMBER_GLOBAL_Y_ELEMENTS/2)*2   ! make value even
     WRITE(*, '("Number Y elements: ", I0)') NUMBER_GLOBAL_Y_ELEMENTS
     
     ! 3rd argument: INTERPOLATION_TYPE
@@ -287,13 +288,9 @@ PROGRAM MONODOMAINEXAMPLE
   !Start the creation of a new RC coordinate system
   CALL cmfe_CoordinateSystem_Initialise(CoordinateSystem,Err)
   CALL cmfe_CoordinateSystem_CreateStart(CoordinateSystemUserNumber,CoordinateSystem,Err)
-  IF(NUMBER_GLOBAL_Z_ELEMENTS==0) THEN
-    !Set the coordinate system to be 2D
-    CALL cmfe_CoordinateSystem_DimensionSet(CoordinateSystem,2,Err)
-  ELSE
-    !Set the coordinate system to be 3D
-    CALL cmfe_CoordinateSystem_DimensionSet(CoordinateSystem,3,Err)
-  ENDIF
+  !Set the coordinate system to be 2D
+  CALL cmfe_CoordinateSystem_DimensionSet(CoordinateSystem,2,Err)
+  
   !Finish the creation of the coordinate system
   CALL cmfe_CoordinateSystem_CreateFinish(CoordinateSystem,Err)
 
@@ -328,21 +325,14 @@ PROGRAM MONODOMAINEXAMPLE
   CASE DEFAULT
     NUMBER_OF_GAUSS_XI=0 !Don't set number of Gauss points for tri/tet
   END SELECT
-  IF(NUMBER_GLOBAL_Z_ELEMENTS==0) THEN
-    !Set the basis to be a bilinear Lagrange basis
-    CALL cmfe_Basis_NumberOfXiSet(Basis,2,Err)
-    CALL cmfe_Basis_InterpolationXiSet(Basis,[INTERPOLATION_TYPE,INTERPOLATION_TYPE],Err)
-    IF(NUMBER_OF_GAUSS_XI>0) THEN
-      CALL cmfe_Basis_QuadratureNumberOfGaussXiSet(Basis,[NUMBER_OF_GAUSS_XI,NUMBER_OF_GAUSS_XI],Err)
-    ENDIF
-  ELSE
-    !Set the basis to be a trilinear Lagrange basis
-    CALL cmfe_Basis_NumberOfXiSet(Basis,3,Err)
-    CALL cmfe_Basis_InterpolationXiSet(Basis,[INTERPOLATION_TYPE,INTERPOLATION_TYPE,INTERPOLATION_TYPE],Err)
-    IF(NUMBER_OF_GAUSS_XI>0) THEN
-      CALL cmfe_Basis_QuadratureNumberOfGaussXiSet(Basis,[NUMBER_OF_GAUSS_XI,NUMBER_OF_GAUSS_XI,NUMBER_OF_GAUSS_XI],Err)
-    ENDIF
+  
+  !Set the basis to be a bilinear Lagrange basis
+  CALL cmfe_Basis_NumberOfXiSet(Basis,2,Err)
+  CALL cmfe_Basis_InterpolationXiSet(Basis,[INTERPOLATION_TYPE,INTERPOLATION_TYPE],Err)
+  IF(NUMBER_OF_GAUSS_XI>0) THEN
+    CALL cmfe_Basis_QuadratureNumberOfGaussXiSet(Basis,[NUMBER_OF_GAUSS_XI,NUMBER_OF_GAUSS_XI],Err)
   ENDIF
+  
   !Finish the creation of the basis
   CALL cmfe_Basis_CreateFinish(Basis,Err)
 
@@ -354,14 +344,9 @@ PROGRAM MONODOMAINEXAMPLE
   !Set the default basis
   CALL cmfe_GeneratedMesh_BasisSet(GeneratedMesh,Basis,Err)   
   !Define the mesh on the region
-  IF(NUMBER_GLOBAL_Z_ELEMENTS==0) THEN
-    CALL cmfe_GeneratedMesh_ExtentSet(GeneratedMesh,[WIDTH,HEIGHT],Err)
-    CALL cmfe_GeneratedMesh_NumberOfElementsSet(GeneratedMesh,[NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS],Err)
-  ELSE
-    CALL cmfe_GeneratedMesh_ExtentSet(GeneratedMesh,[WIDTH,HEIGHT,LENGTH],Err)
-    CALL cmfe_GeneratedMesh_NumberOfElementsSet(GeneratedMesh,[NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS, &
-      & NUMBER_GLOBAL_Z_ELEMENTS],Err)
-  ENDIF    
+  CALL cmfe_GeneratedMesh_ExtentSet(GeneratedMesh,[WIDTH,HEIGHT],Err)
+  CALL cmfe_GeneratedMesh_NumberOfElementsSet(GeneratedMesh,[NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS],Err)
+  
   !Finish the creation of a generated mesh in the region
   CALL cmfe_Mesh_Initialise(Mesh,Err)
   CALL cmfe_GeneratedMesh_CreateFinish(GeneratedMesh,MeshUserNumber,Mesh,Err)
@@ -382,9 +367,7 @@ PROGRAM MONODOMAINEXAMPLE
   !Set the domain to be used by the field components.
   CALL cmfe_Field_ComponentMeshComponentSet(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,Err)
   CALL cmfe_Field_ComponentMeshComponentSet(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,2,1,Err)
-  IF(NUMBER_GLOBAL_Z_ELEMENTS/=0) THEN
-    CALL cmfe_Field_ComponentMeshComponentSet(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,3,1,Err)
-  ENDIF
+  
   !Finish creating the field
   CALL cmfe_Field_CreateFinish(GeometricField,Err)
 
@@ -418,22 +401,21 @@ PROGRAM MONODOMAINEXAMPLE
   CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1, &
     & 500.0_CMISSRP,Err)
   
-  IF(Slow_Twitch) THEN
+  IF(SLOW_TWITCH) THEN
   !Set Cm, slow-twitch
-  !CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
-  !  & 0.58_CMISSRP,Err)
-   !Set Cm, fast-twitch
-  CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
-    & 1.0_CMISSRP,Err) 
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
+      & 0.58_CMISSRP,Err)
+    STIM_VALUE=1200.0_CMISSRP
+  ELSE  
+    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
+    & 1.0_CMISSRP,Err)
+    STIM_VALUE=2000.0_CMISSRP
+  ENDIF  
   !Set conductivity
   CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,3, &
     & CONDUCTIVITY,Err)
   CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,4, &
     & CONDUCTIVITY,Err)
-  IF(NUMBER_GLOBAL_Z_ELEMENTS/=0) THEN
-    CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,5, &
-      & CONDUCTIVITY,Err)
-  ENDIF
 
   !Create the CellML environment
   CALL cmfe_CellML_Initialise(CellML,Err)
@@ -469,7 +451,7 @@ PROGRAM MONODOMAINEXAMPLE
 
   !todo - get vm initialial value.
   CALL cmfe_Field_ComponentValuesInitialise(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1, &
-    & -75.0_CMISSRP,Err)
+    & -92.5_CMISSRP,Err)
   
   !Start the creation of the CellML models field
   CALL cmfe_Field_Initialise(CellMLModelsField,Err)
@@ -510,21 +492,18 @@ PROGRAM MONODOMAINEXAMPLE
 
   !Find the domains of the first and last nodes
   FirstNodeNumber=1
-  IF(NUMBER_GLOBAL_Z_ELEMENTS==0) THEN
-    LastNodeNumber=(NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1)
-  ELSE
-    LastNodeNumber=(NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1)*(NUMBER_GLOBAL_Z_ELEMENTS+1)
-  ENDIF
+  LastNodeNumber=(NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1)
+  
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,FirstNodeNumber,1,FirstNodeDomain,Err)
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,LastNodeNumber,1,LastNodeDomain,Err)
   
-  CALL cmfe_CellML_FieldComponentGet(CellML,n98ModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"membrane/i_Stim",stimcomponent,Err)
+  CALL cmfe_CellML_FieldComponentGet(CellML,n98ModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"membrane/IStim",StimComponent,Err)
   !turn stimulus on at central point
   StimulationNodeIdx = INT(CEILING(DBLE((NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1))/2))
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,StimulationNodeIdx,1,NodeDomain,Err)
   IF(NodeDomain==ComputationalNodeNumber) THEN
     CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
-      & StimulationNodeIdx,stimcomponent,STIM_VALUE,Err)
+      & StimulationNodeIdx,StimComponent,STIM_VALUE,Err)
   ENDIF
   
   !Set up the g_Na gradient
@@ -654,7 +633,7 @@ PROGRAM MONODOMAINEXAMPLE
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,StimulationNodeIdx,1,NodeDomain,Err)
   IF(NodeDomain==ComputationalNodeNumber) THEN
     CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
-      & StimulationNodeIdx,stimcomponent,0.0_CMISSRP,Err)
+      & StimulationNodeIdx,StimComponent,0.0_CMISSRP,Err)
   ENDIF
 
   !Set the time loop from STIM_STOP to TIME_STOP

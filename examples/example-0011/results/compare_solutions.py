@@ -15,9 +15,11 @@ NumberOfFailedTests = 0
 print "  Testing 2D"
 ################################################################################
 # exnode header size
-skiprows    = 9
+skiprows        = 12
+skiprowsRef     =  9
 # size of block containing node ID, coordinates, solution values in exnode file
-blocksize   = 5
+blocksize       = 7
+blocksizeRef    = 5
 # tolerance used to match nodes between CHeart and iron
 tolx         = 1.0e-6
 # tolerance used to check numerical solution
@@ -65,21 +67,21 @@ for s in np.arange(0, 2, 1):
             with open(filename) as f:
                 for line in f:
                     # skip header
-                    if linecount < skiprows:
+                    if linecount < skiprowsRef:
                         linecount += 1
                         continue
                     linecount += 1
                     # node ID
-                    if not(np.mod(linecount-skiprows-1, blocksize)):
+                    if not(np.mod(linecount-skiprowsRef-1, blocksizeRef)):
                         continue
                     # x-coordinate
-                    elif not(np.mod(linecount-skiprows-2, blocksize)):
+                    elif not(np.mod(linecount-skiprowsRef-2, blocksizeRef)):
                         ix      = float(line)
                     # y-coordinate
-                    elif not(np.mod(linecount-skiprows-3, blocksize)):
+                    elif not(np.mod(linecount-skiprowsRef-3, blocksizeRef)):
                         iy      = float(line)
                     # scalar value
-                    elif not(np.mod(linecount-skiprows-4, blocksize)):
+                    elif not(np.mod(linecount-skiprowsRef-4, blocksizeRef)):
                         ival    = float(line)
                         # match nodes between CHeart and iron
                         # this can be expensive, but we only consider small spatial resolution here...
@@ -118,7 +120,7 @@ for s in np.arange(0, 2, 1):
                     elif not(np.mod(linecount-skiprows-3, blocksize)):
                         iy      = float(line)
                     # scalar value
-                    elif not(np.mod(linecount-skiprows-4, blocksize)):
+                    elif not(np.mod(linecount-skiprows-6, blocksize)):
                         ival    = float(line)
                         # match nodes between CHeart and iron
                         # this can be expensive, but we only consider small spatial resolution here...
@@ -159,9 +161,11 @@ for s in np.arange(0, 2, 1):
 print "  Testing 3D"
 ################################################################################
 # exnode header size
-skiprows    = 10
+skiprows        = 14
+skiprowsRef     = 10
 # size of block containing node ID, coordinates, solution values in exnode file
-blocksize   = 6
+blocksize       = 9
+blocksizeRef    = 6
 # tolerance used to match nodes between CHeart and iron
 tolx         = 1.0e-6
 # tolerance used to check numerical solution
@@ -207,24 +211,24 @@ for s in np.arange(0, 2, 1):
             with open(filename) as f:
                 for line in f:
                     # skip header
-                    if linecount < skiprows:
+                    if linecount < skiprowsRef:
                         linecount += 1
                         continue
                     linecount += 1
                     # node ID
-                    if not(np.mod(linecount-skiprows-1, blocksize)):
+                    if not(np.mod(linecount-skiprowsRef-1, blocksizeRef)):
                         continue
                     # x-coordinate
-                    elif not(np.mod(linecount-skiprows-2, blocksize)):
+                    elif not(np.mod(linecount-skiprowsRef-2, blocksizeRef)):
                         ix      = float(line)
                     # y-coordinate
-                    elif not(np.mod(linecount-skiprows-3, blocksize)):
+                    elif not(np.mod(linecount-skiprowsRef-3, blocksizeRef)):
                         iy      = float(line)
                     # z-coordinate
-                    elif not(np.mod(linecount-skiprows-4, blocksize)):
+                    elif not(np.mod(linecount-skiprowsRef-4, blocksizeRef)):
                         iz      = float(line)
                     # scalar value
-                    elif not(np.mod(linecount-skiprows-5, blocksize)):
+                    elif not(np.mod(linecount-skiprowsRef-5, blocksizeRef)):
                         ival    = float(line)
                         # match nodes between CHeart and iron
                         # this can be expensive, but we only consider small spatial resolution here...
@@ -267,7 +271,7 @@ for s in np.arange(0, 2, 1):
                     elif not(np.mod(linecount-skiprows-4, blocksize)):
                         iz      = float(line)
                     # scalar value
-                    elif not(np.mod(linecount-skiprows-5, blocksize)):
+                    elif not(np.mod(linecount-skiprows-8, blocksize)):
                         ival    = float(line)
                         # match nodes between CHeart and iron
                         # this can be expensive, but we only consider small spatial resolution here...
