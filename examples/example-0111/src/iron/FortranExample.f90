@@ -599,16 +599,22 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
     CALL cmfe_Problem_Solve(Problem,Err)
     ! Export solution
     IF (TIMESTEP.LE.9) THEN
-      WRITE(filename, "(A28,I1)") "results/current_run/Example_",TIMESTEP
-      filename=trim(filename)
-    ELSEIF (TIMESTEP.LE.99) THEN
-      WRITE(filename, "(A28,I2)") "results/current_run/Example_",TIMESTEP
-      filename=trim(filename)
-    ELSEIF (TIMESTEP.LE.999) THEN
-      WRITE(filename, "(A28,I3)") "results/current_run/Example_",TIMESTEP
+      !WRITE(filename, "(A28,I1)") "results/current_run/Example_",TIMESTEP
+      !filename=trim(filename)
+      WRITE(filename, "(A21,I3.3,A1,I3.3,A1,I3.3,A2,I2.2,A1,I2.2,A1,I2.2,A2,I1,A2,I1,A9,I1)") &
+        & "results/current_run/l", &
+        & INT(WIDTH),"x",INT(HEIGHT),"x",INT(LENGTH), &
+        & "_n", &
+        & NUMBER_GLOBAL_X_ELEMENTS,"x",NUMBER_GLOBAL_Y_ELEMENTS,"x",NUMBER_GLOBAL_Z_ELEMENTS, &
+        & "_i",INTERPOLATION_TYPE,"_s",SOLVER_TYPE,"/Example_",TIMESTEP
       filename=trim(filename)
     ELSE
-      WRITE(filename, "(A28,I4)") "results/current_run/Example_",TIMESTEP
+      WRITE(filename, "(A21,I3.3,A1,I3.3,A1,I3.3,A2,I2.2,A1,I2.2,A1,I2.2,A2,I1,A2,I1,A9,I2)") &
+        & "results/current_run/l", &
+        & INT(WIDTH),"x",INT(HEIGHT),"x",INT(LENGTH), &
+        & "_n", &
+        & NUMBER_GLOBAL_X_ELEMENTS,"x",NUMBER_GLOBAL_Y_ELEMENTS,"x",NUMBER_GLOBAL_Z_ELEMENTS, &
+        & "_i",INTERPOLATION_TYPE,"_s",SOLVER_TYPE,"/Example_",TIMESTEP
       filename=trim(filename)
     ENDIF
     CALL cmfe_Fields_NodesExport(Fields,filename,"FORTRAN",Err)
