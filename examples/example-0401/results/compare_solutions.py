@@ -59,13 +59,13 @@ for s in np.arange(0, 1, 1):
         Y = range(ny+1)
         X, Y = np.meshgrid(X, Y)
         Z = X.copy()
-        for i in range(nx):
-          for j in range(ny):
-            Z[i,j] = matlab_data[i*ny+j]
+        for i in range(nx+1):
+          for j in range(ny+1):
+            Z[i,j] = matlab_data[i*(ny+1)+j]
         
         fig = plt.figure()
         ax = fig.gca(projection='3d')
-        ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=1, antialiased=False)
+        ax.plot_surface(X, Y, Z, cmap=cm.coolwarm, linewidth=0, antialiased=False)
         plt.show()
         
         ####################################################################
