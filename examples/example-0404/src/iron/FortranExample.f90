@@ -40,7 +40,7 @@
 !>
 
 !> \example Bioelectrics/Monodomain/src/MonodomainExample.f90
-!! Example program to solve a Monodomain equation using OpenCMISS calls. Example-0402
+!! Example program to solve a Monodomain equation using OpenCMISS calls. Example-0401
 !! \par Latest Builds:
 !! \li <a href='http://autotest.bioeng.auckland.ac.nz/opencmiss-build/logs_x86_64-linux/Bioelectrics/Monodomain/build-intel'>Linux Intel Build</a>
 !! \li <a href='http://autotest.bioeng.auckland.ac.nz/opencmiss-build/logs_x86_64-linux/Bioelectrics/Monodomain/build-gnu'>Linux GNU Build</a>
@@ -70,7 +70,6 @@ PROGRAM MONODOMAINEXAMPLE
 
   !Test program parameters
 
-  REAL(CMISSRP), PARAMETER :: HEIGHT=1.0_CMISSRP
   REAL(CMISSRP), PARAMETER :: WIDTH=1.0_CMISSRP
 
   INTEGER(CMISSIntg), PARAMETER :: CoordinateSystemUserNumber=1
@@ -99,13 +98,13 @@ PROGRAM MONODOMAINEXAMPLE
   CHARACTER(LEN=25500) :: COMMAND_ARGUMENT,CellmlFile,Filename
   LOGICAL :: fileExist
 
-  INTEGER(CMISSIntg) :: NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS
+  INTEGER(CMISSIntg) :: NUMBER_GLOBAL_X_ELEMENTS
   INTEGER(CMISSIntg) :: SOLVER_TYPE, INTERPOLATION_TYPE, NUMBER_OF_GAUSS_XI
   LOGICAL :: SLOW_TWITCH
 
   LOGICAL :: EXPORT_FIELD
 
-  INTEGER(CMISSIntg) :: n98ModelIndex
+  INTEGER(CMISSIntg) :: CellMLModelIndex
 
   INTEGER(CMISSIntg) :: gNacomponent,StimComponent,node_idx
 
@@ -143,9 +142,9 @@ PROGRAM MONODOMAINEXAMPLE
   !Generic CMISS variables
   
   INTEGER(CMISSIntg) :: NumberOfComputationalNodes,ComputationalNodeNumber
-  INTEGER(CMISSIntg) :: EquationsSetIndex,CellMLIndex
+  INTEGER(CMISSIntg) :: EquationsSetIndex,CellMLIndex,StimulationNodeIdx
   INTEGER(CMISSIntg) :: FirstNodeNumber,LastNodeNumber
-  INTEGER(CMISSIntg) :: FirstNodeDomain,LastNodeDomain,NodeDomain,StimulationNodeIdx
+  INTEGER(CMISSIntg) :: FirstNodeDomain,LastNodeDomain,NodeDomain
   INTEGER(CMISSIntg) :: Err
   
 #ifdef WIN32
@@ -167,58 +166,50 @@ PROGRAM MONODOMAINEXAMPLE
     CALL GET_COMMAND_ARGUMENT(1,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 1.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_X_ELEMENTS
-    NUMBER_GLOBAL_X_ELEMENTS = (NUMBER_GLOBAL_X_ELEMENTS/2)*2   ! make value even
     WRITE(*, '("Number X elements: ", I0)') NUMBER_GLOBAL_X_ELEMENTS
 
-    ! second argument: Y elements
+    ! 2rd argument: INTERPOLATION_TYPE
     CALL GET_COMMAND_ARGUMENT(2,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 2.")
-    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) NUMBER_GLOBAL_Y_ELEMENTS
-    NUMBER_GLOBAL_Y_ELEMENTS = (NUMBER_GLOBAL_Y_ELEMENTS/2)*2   ! make value even
-    WRITE(*, '("Number Y elements: ", I0)') NUMBER_GLOBAL_Y_ELEMENTS
-    
-    ! 3rd argument: INTERPOLATION_TYPE
-    CALL GET_COMMAND_ARGUMENT(3,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
-    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 3.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) INTERPOLATION_TYPE
     IF(INTERPOLATION_TYPE<=0) CALL HANDLE_ERROR("Invalid interpolation specification.")
     
-    ! 4th argument: solver type
-    CALL GET_COMMAND_ARGUMENT(4,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
-    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 4.")
+    ! 3th argument: solver type
+    CALL GET_COMMAND_ARGUMENT(3,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 3.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) SOLVER_TYPE
     IF((SOLVER_TYPE<0).OR.(SOLVER_TYPE>1)) CALL HANDLE_ERROR("Invalid solver type specification.")
 
-    ! 5th argument pde time step
-    CALL GET_COMMAND_ARGUMENT(5,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
-    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 5.")
+    ! 4th argument pde time step
+    CALL GET_COMMAND_ARGUMENT(4,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 4.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) PDE_TIME_STEP
     WRITE(*, '("PDE Step Size: ", E14.7)') PDE_TIME_STEP
 
-    ! 6th argument: time stop
-    CALL GET_COMMAND_ARGUMENT(6,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    ! 5th argument: time stop
+    CALL GET_COMMAND_ARGUMENT(5,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) TIME_STOP
     WRITE(*, '("Stop Time: ", E14.7)') TIME_STOP
 
-    ! 7th argument: output frequency
-    CALL GET_COMMAND_ARGUMENT(7,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    ! 6th argument: output frequency
+    CALL GET_COMMAND_ARGUMENT(6,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) OUTPUT_FREQUENCY
     WRITE(*, '("Output Frequency: ", I10)') OUTPUT_FREQUENCY
 
-    ! 8th argument cellml file
-    CALL GET_COMMAND_ARGUMENT(8,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    ! 7th argument cellml file
+    CALL GET_COMMAND_ARGUMENT(7,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     !IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 8.")
     CellmlFile = adjustl(COMMAND_ARGUMENT)
     WRITE(*, '("CellML File: ", A)') TRIM(CellmlFile)
     
-    ! 9th argument fast or slow twitch parameters of cellml model
-    CALL GET_COMMAND_ARGUMENT(9,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    ! 8th argument fast or slow twitch parameters of cellml model
+    CALL GET_COMMAND_ARGUMENT(8,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) SLOW_TWITCH
     WRITE(*, '("Slow Twitch: ", L)') SLOW_TWITCH
     
-     ! 10th argument ode time step
-    CALL GET_COMMAND_ARGUMENT(10,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
-    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 10.")
+     ! 9th argument ode time step
+    CALL GET_COMMAND_ARGUMENT(9,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 9.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) ODE_TIME_STEP
     WRITE(*, '("ODE Step Size: ", E14.7)') ODE_TIME_STEP
 
@@ -229,11 +220,10 @@ PROGRAM MONODOMAINEXAMPLE
     endif
   ELSE
     !If there are not enough arguments default the problem specification 
-    WRITE(*,'(">>USAGE: ",A)') "MonodomainExample <number elements X> <number elements Y> <interpolation type> <solver type>" // &
+    WRITE(*,'(">>USAGE: ",A)') "MonodomainExample <number elements X> <interpolation type> <solver type>" // &
       & "<PDE step size> <stop time> <output frequency> <CellML Model URL>"
     
     NUMBER_GLOBAL_X_ELEMENTS=24
-    NUMBER_GLOBAL_Y_ELEMENTS=24
     SOLVER_TYPE=0
 !    INTERPOLATION_TYPE=1
     
@@ -254,14 +244,14 @@ PROGRAM MONODOMAINEXAMPLE
     ODE_TIME_STEP = 0.001_CMISSRP
     TIME_STOP=1.00
     OUTPUT_FREQUENCY=1
-    CellmlFile="n98.xml"
+    CellmlFile="hodgkin_huxley_1952.cellml"
     SLOW_TWITCH=.TRUE.
   ENDIF
 
   ! determine file name for output files
-  WRITE(filename, "(A,I0,A,I0,A,I1,A,I0,A)") &
+  WRITE(filename, "(A,I0,A,I1,A,I0,A)") &
     & "results/current_run/l1x1_n", &
-    & NUMBER_GLOBAL_X_ELEMENTS,"x",NUMBER_GLOBAL_Y_ELEMENTS, &
+    & NUMBER_GLOBAL_X_ELEMENTS, &
     & "_i",INTERPOLATION_TYPE,"_s",SOLVER_TYPE,"/Example"
   filename=trim(filename)
   PRINT *, "Filename: """ // TRIM(Filename) // """"
@@ -275,7 +265,7 @@ PROGRAM MONODOMAINEXAMPLE
   
 !  CALL cmfe_DiagnosticsSetOn(CMFE_IN_DIAG_TYPE,[1,2,3,4,5],"Diagnostics",["DOMAIN_MAPPINGS_LOCAL_FROM_GLOBAL_CALCULATE"],Err)
 
-  WRITE(Filename,'(A,"_",I0,"x",I0)') "Monodomain",NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS
+  WRITE(Filename,'(A,"_",I0,"x",I0)') "Monodomain",NUMBER_GLOBAL_X_ELEMENTS
   
   CALL cmfe_OutputSetOn(Filename,Err)
 
@@ -283,13 +273,11 @@ PROGRAM MONODOMAINEXAMPLE
   CALL cmfe_ComputationalNumberOfNodesGet(NumberOfComputationalNodes,Err)
   CALL cmfe_ComputationalNodeNumberGet(ComputationalNodeNumber,Err)
 
-  !CALL cmfe_OutputSetOn("Monodomain",Err)
-    
   !Start the creation of a new RC coordinate system
   CALL cmfe_CoordinateSystem_Initialise(CoordinateSystem,Err)
   CALL cmfe_CoordinateSystem_CreateStart(CoordinateSystemUserNumber,CoordinateSystem,Err)
-  !Set the coordinate system to be 2D
-  CALL cmfe_CoordinateSystem_DimensionSet(CoordinateSystem,2,Err)
+  !Set the coordinate system to be 1D
+  CALL cmfe_CoordinateSystem_DimensionSet(CoordinateSystem,1,Err)
   
   !Finish the creation of the coordinate system
   CALL cmfe_CoordinateSystem_CreateFinish(CoordinateSystem,Err)
@@ -304,7 +292,7 @@ PROGRAM MONODOMAINEXAMPLE
   !Finish the creation of the region
   CALL cmfe_Region_CreateFinish(Region,Err)
 
-  !Start the creation of a basis (default is trilinear lagrange)
+  !Start the creation of a basis (default is linear lagrange)
   CALL cmfe_Basis_Initialise(Basis,Err)
   CALL cmfe_Basis_CreateStart(BasisUserNumber,Basis,Err)
   SELECT CASE(INTERPOLATION_TYPE)
@@ -326,11 +314,11 @@ PROGRAM MONODOMAINEXAMPLE
     NUMBER_OF_GAUSS_XI=0 !Don't set number of Gauss points for tri/tet
   END SELECT
   
-  !Set the basis to be a bilinear Lagrange basis
-  CALL cmfe_Basis_NumberOfXiSet(Basis,2,Err)
-  CALL cmfe_Basis_InterpolationXiSet(Basis,[INTERPOLATION_TYPE,INTERPOLATION_TYPE],Err)
+  !Set the basis to be a linear Lagrange basis
+  CALL cmfe_Basis_NumberOfXiSet(Basis,1,Err)
+  CALL cmfe_Basis_InterpolationXiSet(Basis,[INTERPOLATION_TYPE],Err)
   IF(NUMBER_OF_GAUSS_XI>0) THEN
-    CALL cmfe_Basis_QuadratureNumberOfGaussXiSet(Basis,[NUMBER_OF_GAUSS_XI,NUMBER_OF_GAUSS_XI],Err)
+    CALL cmfe_Basis_QuadratureNumberOfGaussXiSet(Basis,[NUMBER_OF_GAUSS_XI],Err)
   ENDIF
   
   !Finish the creation of the basis
@@ -339,17 +327,17 @@ PROGRAM MONODOMAINEXAMPLE
   !Start the creation of a generated mesh in the region
   CALL cmfe_GeneratedMesh_Initialise(GeneratedMesh,Err)
   CALL cmfe_GeneratedMesh_CreateStart(GeneratedMeshUserNumber,Region,GeneratedMesh,Err)
-  !Set up a regular x*y*z mesh
+  !Set up a regular mesh
   CALL cmfe_GeneratedMesh_TypeSet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_MESH_TYPE,Err)
   !Set the default basis
   CALL cmfe_GeneratedMesh_BasisSet(GeneratedMesh,Basis,Err)   
   !Define the mesh on the region
-  CALL cmfe_GeneratedMesh_ExtentSet(GeneratedMesh,[WIDTH,HEIGHT],Err)
-  CALL cmfe_GeneratedMesh_NumberOfElementsSet(GeneratedMesh,[NUMBER_GLOBAL_X_ELEMENTS,NUMBER_GLOBAL_Y_ELEMENTS],Err)
-  
+  CALL cmfe_GeneratedMesh_ExtentSet(GeneratedMesh,[WIDTH],Err)
+  CALL cmfe_GeneratedMesh_NumberOfElementsSet(GeneratedMesh,[NUMBER_GLOBAL_X_ELEMENTS],Err)
   !Finish the creation of a generated mesh in the region
   CALL cmfe_Mesh_Initialise(Mesh,Err)
   CALL cmfe_GeneratedMesh_CreateFinish(GeneratedMesh,MeshUserNumber,Mesh,Err)
+  
   !Create a decomposition
   CALL cmfe_Decomposition_Initialise(Decomposition,Err)
   CALL cmfe_Decomposition_CreateStart(DecompositionUserNumber,Mesh,Decomposition,Err)
@@ -366,7 +354,6 @@ PROGRAM MONODOMAINEXAMPLE
   CALL cmfe_Field_MeshDecompositionSet(GeometricField,Decomposition,Err)
   !Set the domain to be used by the field components.
   CALL cmfe_Field_ComponentMeshComponentSet(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,Err)
-  CALL cmfe_Field_ComponentMeshComponentSet(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,2,1,Err)
   
   !Finish creating the field
   CALL cmfe_Field_CreateFinish(GeometricField,Err)
@@ -378,8 +365,9 @@ PROGRAM MONODOMAINEXAMPLE
   CALL cmfe_EquationsSet_Initialise(EquationsSet,Err)
   CALL cmfe_Field_Initialise(EquationsSetField,Err)
   !Set the equations set to be a Monodomain equations set
-  CALL cmfe_EquationsSet_CreateStart(EquationsSetUserNumber,Region,GeometricField,[CMFE_EQUATIONS_SET_BIOELECTRICS_CLASS, &
-    & CMFE_EQUATIONS_SET_MONODOMAIN_EQUATION_TYPE,CMFE_EQUATIONS_SET_NO_SUBTYPE],EquationsSetFieldUserNumber,EquationsSetField, &
+  CALL cmfe_EquationsSet_CreateStart(EquationsSetUserNumber,Region,GeometricField,&
+    & [CMFE_EQUATIONS_SET_BIOELECTRICS_CLASS,CMFE_EQUATIONS_SET_MONODOMAIN_EQUATION_TYPE,CMFE_EQUATIONS_SET_NO_SUBTYPE],&
+    & EquationsSetFieldUserNumber,EquationsSetField, &
     & EquationsSet,Err)
   
   !Finish creating the equations set
@@ -411,30 +399,34 @@ PROGRAM MONODOMAINEXAMPLE
     & 1.0_CMISSRP,Err)
     STIM_VALUE=2000.0_CMISSRP
   ENDIF  
+  
   !Set conductivity
   CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,3, &
-    & CONDUCTIVITY,Err)
-  CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,4, &
     & CONDUCTIVITY,Err)
 
   !Create the CellML environment
   CALL cmfe_CellML_Initialise(CellML,Err)
   CALL cmfe_CellML_CreateStart(CellMLUserNumber,Region,CellML,Err)
   !Import a Noble 1998 model from a file
-  CALL cmfe_CellML_ModelImport(CellML,CellmlFile,n98ModelIndex,Err)
-  CALL cmfe_CellML_VariableSetAsKnown(CellML,n98ModelIndex,"fast_sodium_current/g_Na ",Err)
-  CALL cmfe_CellML_VariableSetAsKnown(CellML,n98ModelIndex,"membrane/IStim",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_K1",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_to",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_K",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_K_ATP",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_Ca_L_K",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_b_K",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_NaK",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_Na",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_b_Na",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_Ca_L_Na",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_NaCa",Err)
+  CALL cmfe_CellML_ModelImport(CellML,CellmlFile,CellMLModelIndex,Err)
+  
+  CALL cmfe_CellML_VariableSetAsKnown(CellML,CellMLModelIndex,"membrane/i_Stim ",Err)
+  CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_Na",Err)
+  
+  
+  !CALL cmfe_CellML_VariableSetAsKnown(CellML,CellMLModelIndex,"fast_sodium_current/g_Na ",Err)
+  !CALL cmfe_CellML_VariableSetAsKnown(CellML,CellMLModelIndex,"membrane/IStim",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_K1",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_to",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_K",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_K_ATP",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_Ca_L_K",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_b_K",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_NaK",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_Na",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_b_Na",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_Ca_L_Na",Err)
+  !CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_NaCa",Err)
   !Finish the CellML environment
   CALL cmfe_CellML_CreateFinish(CellML,Err)
 
@@ -443,15 +435,15 @@ PROGRAM MONODOMAINEXAMPLE
   !Now we can set up the field variable component <--> CellML model variable mappings.
   !Map Vm
   CALL cmfe_CellML_CreateFieldToCellMLMap(CellML,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,CMFE_FIELD_VALUES_SET_TYPE, &
-    & n98ModelIndex,"membrane/V",CMFE_FIELD_VALUES_SET_TYPE,Err)
-  CALL cmfe_CellML_CreateCellMLToFieldMap(CellML,n98ModelIndex,"membrane/V",CMFE_FIELD_VALUES_SET_TYPE, &
+    & CellMLModelIndex,"membrane/V",CMFE_FIELD_VALUES_SET_TYPE,Err)
+  CALL cmfe_CellML_CreateCellMLToFieldMap(CellML,CellMLModelIndex,"membrane/V",CMFE_FIELD_VALUES_SET_TYPE, &
     & DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,CMFE_FIELD_VALUES_SET_TYPE,Err)
   !Finish the creation of CellML <--> OpenCMISS field maps
   CALL cmfe_CellML_FieldMapsCreateFinish(CellML,Err)
 
-  !todo - get vm initialial value.
+  !Set initial value for Vm
   CALL cmfe_Field_ComponentValuesInitialise(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1, &
-    & -92.5_CMISSRP,Err)
+    & -75.0_CMISSRP,Err)
   
   !Start the creation of the CellML models field
   CALL cmfe_Field_Initialise(CellMLModelsField,Err)
@@ -492,14 +484,13 @@ PROGRAM MONODOMAINEXAMPLE
 
   !Find the domains of the first and last nodes
   FirstNodeNumber=1
-  LastNodeNumber=(NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1)
-  
+  LastNodeNumber=(NUMBER_GLOBAL_X_ELEMENTS+1)
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,FirstNodeNumber,1,FirstNodeDomain,Err)
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,LastNodeNumber,1,LastNodeDomain,Err)
   
-  CALL cmfe_CellML_FieldComponentGet(CellML,n98ModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"membrane/IStim",StimComponent,Err)
+  CALL cmfe_CellML_FieldComponentGet(CellML,CellMLModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"membrane/i_Stim",StimComponent,Err)
   !turn stimulus on at central point
-  StimulationNodeIdx = INT(CEILING(DBLE((NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1))/2))
+  StimulationNodeIdx = INT(CEILING(DBLE(NUMBER_GLOBAL_X_ELEMENTS+1)/2))
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,StimulationNodeIdx,1,NodeDomain,Err)
   IF(NodeDomain==ComputationalNodeNumber) THEN
     CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
@@ -507,27 +498,29 @@ PROGRAM MONODOMAINEXAMPLE
   ENDIF
   
   !Set up the g_Na gradient
-  CALL cmfe_CellML_FieldComponentGet(CellML,n98ModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"fast_sodium_current/g_Na", &
-    & gNacomponent,Err)
+  !CALL cmfe_CellML_FieldComponentGet(CellML,CellMLModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"fast_sodium_current/g_Na", &
+  !  & gNacomponent,Err)
   !Loop over the nodes
-  DO node_idx=1,LastNodeNumber
-    CALL cmfe_Decomposition_NodeDomainGet(Decomposition,node_idx,1,NodeDomain,Err)
-    IF(NodeDomain==ComputationalNodeNumber) THEN
-      CALL cmfe_Field_ParameterSetGetNode(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1,node_idx,1, &
-        & X,Err)
-      CALL cmfe_Field_ParameterSetGetNode(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1,node_idx,2, &
-        & Y,Err)
-      DISTANCE=SQRT(X**2+Y**2)/SQRT(2.0_CMISSRP)
-      gNa_VALUE=2.0_CMISSRP*(DISTANCE+0.5_CMISSRP)*385.5e-3_CMISSRP
-      CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
-        & node_idx,gNacomponent,gNa_VALUE,Err)
-    ENDIF
-  ENDDO
+  !DO node_idx=1,LastNodeNumber
+  !  CALL cmfe_Decomposition_NodeDomainGet(Decomposition,node_idx,1,NodeDomain,Err)
+  !  IF(NodeDomain==ComputationalNodeNumber) THEN
+  !    CALL cmfe_Field_ParameterSetGetNode(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1,node_idx,1, &
+  !      & X,Err)
+  !    CALL cmfe_Field_ParameterSetGetNode(GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1,node_idx,2, &
+  !      & Y,Err)
+  !    DISTANCE=SQRT(X**2+Y**2)/SQRT(2.0_CMISSRP)
+  !    gNa_VALUE=2.0_CMISSRP*(DISTANCE+0.5_CMISSRP)*385.5e-3_CMISSRP
+  !    CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
+  !      & node_idx,gNacomponent,gNa_VALUE,Err)
+  !  ENDIF
+  !ENDDO
   
   !Start the creation of a problem.
   CALL cmfe_Problem_Initialise(Problem,Err)
-  CALL cmfe_Problem_CreateStart(ProblemUserNumber,[CMFE_PROBLEM_BIOELECTRICS_CLASS,CMFE_PROBLEM_MONODOMAIN_EQUATION_TYPE, &
-    & CMFE_PROBLEM_MONODOMAIN_GUDUNOV_SPLIT_SUBTYPE],Problem,Err)
+  !Set the Stimulus at half the bottom nodes
+  CALL cmfe_Problem_CreateStart(ProblemUserNumber,&
+    & [CMFE_PROBLEM_BIOELECTRICS_CLASS,CMFE_PROBLEM_MONODOMAIN_EQUATION_TYPE,CMFE_PROBLEM_MONODOMAIN_GUDUNOV_SPLIT_SUBTYPE],&
+    & Problem,Err)
   !Finish the creation of a problem.
   CALL cmfe_Problem_CreateFinish(Problem,Err)
 
@@ -551,7 +544,7 @@ PROGRAM MONODOMAINEXAMPLE
   !Get the first (DAE) solver
   CALL cmfe_Solver_Initialise(Solver,Err)
   CALL cmfe_Problem_SolverGet(Problem,CMFE_CONTROL_LOOP_NODE,1,Solver,Err)
-  !Set the DAE time step to by 10 us
+  !Set the DAE time step to be 10 us
   CALL cmfe_Solver_DAETimeStepSet(Solver,ODE_TIME_STEP,Err)
   !CALL cmfe_Solver_DAESolverTypeSet(Solver,CMFE_SOLVER_DAE_EXTERNAL,Err)
   CALL cmfe_Solver_OutputTypeSet(Solver,CMFE_SOLVER_NO_OUTPUT,Err)

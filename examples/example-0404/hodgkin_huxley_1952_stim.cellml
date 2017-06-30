@@ -73,7 +73,7 @@ In a series of papers published in 1952, A.L. Hodgkin and A.F. Huxley presented 
       <variable name="i_Na" public_interface="in" units="microA_per_cm2"/>
       <variable name="i_K" public_interface="in" units="microA_per_cm2"/>
       <variable name="i_L" public_interface="in" units="microA_per_cm2"/>
-      <variable name="i_Stim" units="microA_per_cm2"/>
+      <variable name="i_Stim" initial_value="0.0" units="microA_per_cm2"/>
       <math xmlns="http://www.w3.org/1998/Math/MathML">
          <apply>
             <eq/>
