@@ -14,7 +14,7 @@ cd ..
 echo "  running $folder"
 #mkdir -p results/current_run && ./$folder/src/example
 #mkdir -p results/current_run && ./$folder/src/example 160 120 0 32 24 0 1 0 10000 0.3 0.025
-# These are the linear elasticity tests for simple shear
+# These are the linear elasticity tests for simple shear (displacement driven)
 # 2D Tests
 echo "    2D tests"
 mkdir -p results/current_run/l160x120x000_n08x06x00_i1_s0 && ./$folder/src/example 160 120 0 8 6 0 1 0 10000 0.3 0.025
