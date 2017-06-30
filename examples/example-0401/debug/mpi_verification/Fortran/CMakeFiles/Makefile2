@@ -54,10 +54,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/emamynt/opencmiss/iron-tests/examples/example-0401/debug/mpi_verification/Fortran
+CMAKE_SOURCE_DIR = /store/software/opencmiss/iron-tests/examples/example-0401/debug/mpi_verification/Fortran
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/emamynt/opencmiss/iron-tests/examples/example-0401/debug/mpi_verification/Fortran
+CMAKE_BINARY_DIR = /store/software/opencmiss/iron-tests/examples/example-0401/debug/mpi_verification/Fortran
 
 #=============================================================================
 # Special targets to cleanup operation of make.

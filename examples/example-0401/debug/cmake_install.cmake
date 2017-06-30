@@ -1,4 +1,4 @@
-# Install script for directory: /home/emamynt/opencmiss/iron-tests/examples/example-0401
+# Install script for directory: /store/software/opencmiss/iron-tests/examples/example-0401
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,7 +34,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/emamynt/opencmiss/iron-tests/examples/example-0401/debug/src/cmake_install.cmake")
+  include("/store/software/opencmiss/iron-tests/examples/example-0401/debug/src/cmake_install.cmake")
 
 endif()
 
@@ -46,5 +46,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/emamynt/opencmiss/iron-tests/examples/example-0401/debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/store/software/opencmiss/iron-tests/examples/example-0401/debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

@@ -252,10 +252,10 @@ PROGRAM MONODOMAINEXAMPLE
     ! BASIS_CUBIC_SIMPLEX_INTERPOLATION=9 !<Cubic Simplex interpolation specification \see BASIS_ROUTINES_InterpolationSpecifications,BASIS_ROUTINES
     PDE_TIME_STEP = 0.05_CMISSRP
     ODE_TIME_STEP = 0.001_CMISSRP
-    TIME_STOP=1.00
+    TIME_STOP=3.00
     OUTPUT_FREQUENCY=1
     CellmlFile="hodgkin_huxley_1952.cellml"
-    SLOW_TWITCH=.TRUE.
+    SLOW_TWITCH=.FALSE.
   ENDIF
 
   ! determine file name for output files

@@ -1,4 +1,4 @@
-# Install script for directory: /home/emamynt/opencmiss/iron-tests/examples/example-0401/src
+# Install script for directory: /store/software/opencmiss/iron-tests/examples/example-0401/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
