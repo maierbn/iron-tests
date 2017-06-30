@@ -6,5 +6,5 @@ Fortran_FLAGS = -g   -cpp
 
 Fortran_DEFINES = -DDEBUG -DDOUBLE_REAL_PRECISION -DUSE_CUSTOM_PROFILING -DWITH_CELLML -DWITH_DIAGNOSTICS -DWITH_FIELDML -DWITH_HYPRE -DWITH_MUMPS -DWITH_PETSC -DWITH_SCALAPACK -DWITH_SUNDIALS
 
-Fortran_INCLUDES = -I/home/emamynt/opencmiss/iron/install/x86_64_linux/gnu-5.4-F5.4/openmpi_release/debug/include/opencmiss -I/home/emamynt/opencmiss/iron/install/x86_64_linux/gnu-5.4-F5.4/openmpi_release/debug/include -I/usr/lib/openmpi/include -I/usr/lib/openmpi/lib -I/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent -I/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include -I/usr/lib/openmpi/include/openmpi 
+Fortran_INCLUDES = -I/store/software/opencmiss/iron_maierbn/install/x86_64_linux/gnu-5.4-F5.4/openmpi_release/debug/include/opencmiss -I/usr/lib/openmpi/include -I/usr/lib/openmpi/lib -I/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent -I/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include -I/usr/lib/openmpi/include/openmpi 
 

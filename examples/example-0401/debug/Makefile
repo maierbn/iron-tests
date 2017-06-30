@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/emamynt/opencmiss/iron-tests/examples/example-0401
+CMAKE_SOURCE_DIR = /store/software/opencmiss/iron-tests/examples/example-0401
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/emamynt/opencmiss/iron-tests/examples/example-0401/debug
+CMAKE_BINARY_DIR = /store/software/opencmiss/iron-tests/examples/example-0401/debug
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -91,9 +91,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/emamynt/opencmiss/iron-tests/examples/example-0401/debug/CMakeFiles /home/emamynt/opencmiss/iron-tests/examples/example-0401/debug/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /store/software/opencmiss/iron-tests/examples/example-0401/debug/CMakeFiles /store/software/opencmiss/iron-tests/examples/example-0401/debug/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/emamynt/opencmiss/iron-tests/examples/example-0401/debug/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /store/software/opencmiss/iron-tests/examples/example-0401/debug/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
