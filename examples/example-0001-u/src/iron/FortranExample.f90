@@ -128,7 +128,7 @@ PROGRAM LAPLACEEXAMPLE
 
   REAL(CMISSRP),        ALLOCATABLE :: NodesImport(:,:)           !< The coordinates of the mesh nodes
   INTEGER(CMISSIntg),   ALLOCATABLE :: ElementsImport(:,:)        !< The node IDs for each element
-  INTEGER(CMISSIntg),   ALLOCATABLE :: BoundaryPatchesImport(:,:) !< The boundary patch labels for all boundary nodes
+  INTEGER(CMISSIntg),   ALLOCATABLE :: BoundaryPatchesImport(:) !< The boundary patch labels for all boundary nodes
   
 #ifdef WIN32
   !Initialise QuickWin
@@ -300,7 +300,8 @@ PROGRAM LAPLACEEXAMPLE
   IF(Err/=0) CALL HANDLE_ERROR("Can not allocate memory.")
   ALLOCATE(ElementsImport(NumberOfElements,NumberOfNodesPerElement),STAT=Err)
   IF(Err/=0) CALL HANDLE_ERROR("Can not allocate memory.")
-  ALLOCATE(BoundaryPatchesImport(NumberOfBoundaryPatches,NumberOfBoundaryPatchComponents),STAT=Err)
+  ! Note: boundary variable is larger than it needs to be --> move allocate inside function to be able to compute the minimum size
+  ALLOCATE(BoundaryPatchesImport(1+NumberOfBoundaryPatches*NumberOfBoundaryPatchComponents),STAT=Err)
   IF(Err/=0) CALL HANDLE_ERROR("Can not allocate memory.")
   ! Read mesh data
   CALL cmfe_ReadMeshFiles(trim(Filename), NodesImport, ElementsImport, BoundaryPatchesImport, "CHeart", Err)
