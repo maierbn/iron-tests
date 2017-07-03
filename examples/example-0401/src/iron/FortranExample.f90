@@ -105,7 +105,7 @@ PROGRAM MONODOMAINEXAMPLE
 
   LOGICAL :: EXPORT_FIELD
 
-  INTEGER(CMISSIntg) :: CellMLModelIndex
+  INTEGER(CMISSIntg) :: CellMLModelIndex,ODE_NumberOfSteps
 
   INTEGER(CMISSIntg) :: gNacomponent,StimComponent,node_idx
 
@@ -115,6 +115,7 @@ PROGRAM MONODOMAINEXAMPLE
   REAL(CMISSRP) :: STIM_VALUE
   REAL(CMISSRP), PARAMETER :: STIM_STOP = 0.10_CMISSRP
   REAL(CMISSRP) :: TIME_STOP = 1.50_CMISSRP
+  ! ODE_TIME_STEP must exist. However, if ODE_NumberOfSteps is used, then ODE_TIME_STEP is neglected.
   REAL(CMISSRP) :: ODE_TIME_STEP
   REAL(CMISSRP) :: PDE_TIME_STEP
   REAL(CMISSRP), PARAMETER :: CONDUCTIVITY = 3.828_CMISSRP
@@ -216,11 +217,11 @@ PROGRAM MONODOMAINEXAMPLE
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) SLOW_TWITCH
     WRITE(*, '("Slow Twitch: ", L)') SLOW_TWITCH
     
-     ! 10th argument ode time step
+     ! 10th argument: number of time steps for ode
     CALL GET_COMMAND_ARGUMENT(10,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 10.")
-    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) ODE_TIME_STEP
-    WRITE(*, '("ODE Step Size: ", E14.7)') ODE_TIME_STEP
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) ODE_NumberOfSteps
+    WRITE(*, '("ODE Number Of Steps: ", E14.7)') ODE_NumberOfSteps
 
     inquire(file=CellmlFile, exist=fileExist)
     if (.not. fileExist) then
@@ -251,7 +252,8 @@ PROGRAM MONODOMAINEXAMPLE
     ! BASIS_QUADRATIC_SIMPLEX_INTERPOLATION=8 !<Quadratic Simplex interpolation specification \see BASIS_ROUTINES_InterpolationSpecifications,BASIS_ROUTINES
     ! BASIS_CUBIC_SIMPLEX_INTERPOLATION=9 !<Cubic Simplex interpolation specification \see BASIS_ROUTINES_InterpolationSpecifications,BASIS_ROUTINES
     PDE_TIME_STEP = 0.05_CMISSRP
-    ODE_TIME_STEP = 0.001_CMISSRP
+    ODE_TIME_STEP = 0.001_CMISSRP ! doesn't have to be in agreement with ODE_NumberOfSteps. ODE_NumberOfSteps is the important one, if it's used. 
+    ODE_NumberOfSteps = 50        !
     TIME_STOP=3.00
     OUTPUT_FREQUENCY=1
     CellmlFile="hodgkin_huxley_1952.cellml"
@@ -563,6 +565,7 @@ PROGRAM MONODOMAINEXAMPLE
   CALL cmfe_Problem_SolverGet(Problem,CMFE_CONTROL_LOOP_NODE,1,Solver,Err)
   !Set the DAE time step to by 10 us
   CALL cmfe_Solver_DAETimeStepSet(Solver,ODE_TIME_STEP,Err)
+  CALL cmfe_Solver_DAEEulerForwardSetNSteps(Solver,ODE_NumberOfSteps,Err)
   !CALL cmfe_Solver_DAESolverTypeSet(Solver,CMFE_SOLVER_DAE_EXTERNAL,Err)
   CALL cmfe_Solver_OutputTypeSet(Solver,CMFE_SOLVER_NO_OUTPUT,Err)
   !CALL cmfe_Solver_OutputTypeSet(Solver,CMFE_SOLVER_PROGRESS_OUTPUT,Err)
