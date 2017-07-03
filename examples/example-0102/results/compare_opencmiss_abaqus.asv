@@ -24,8 +24,8 @@ hold on
 %% FILE DEFINITIONS
 % (x) working
 LOADING = 'SHEAR'; % SHEAR (x); UNIAX
-REFINEMENT = 'MEDIUM'; % COARSE (x); MEDIUM (x); FINE
-DIMENSION = '3D'; % 2D; 3D (x)
+REFINEMENT = 'FINE'; % COARSE (x); MEDIUM (x); FINE
+DIMENSION = '2D'; % 2D; 3D (x)
 
 outString = ['Loading is: ' LOADING ', Refinement is: ' REFINEMENT ...
     ', Dimension is: ' DIMENSION];
@@ -183,14 +183,15 @@ disp '***************************************************************'
 
 %% PLOTTING
 figure(1)
-title('Displacement Comparison between OpenCMISS and ABAQUS')
+title('U1 over top surface')
 plot(x_vec,abaq_topSurf_values(:,dispOfInterest),'-r')
 plot(x_vec,cmiss_topSurf_values)
-xlabel('reference horizontal distance (mm)')
-ylabel('comparison displacement (mm)')
+xtitle('x')
+ytitle()
+
 
 outName = [LOADING '_' REFINEMENT '_' DIMENSION]; 
-print(outName,'-dpng')
+print(outName','-dpng')
 
 
 % bottom surface (y = 0)
