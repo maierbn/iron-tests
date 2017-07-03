@@ -3,38 +3,58 @@
 %
 \clearpage
 %
-\subsection{Example-0101}
+\subsection{Example-0102}
 %
 %===============================================================================
 %
 \subsubsection{Mathematical model}
 %
-We solve the following equation,
+We solve the following equation (both $2D$ and $3D$ domains are considered),
 %
 \begin{align}
-    \nabla \cdot \boldsymbol{\sigma} (\boldsymbol{u}, t) = \boldsymbol{0} & &&\Omega = [0, 160] \times [0, 120], t \in [0, 5],
+    \nabla \cdot \boldsymbol{\sigma} (\boldsymbol{u}, t) = \boldsymbol{0} & &&\Omega = [0, 160] \times [0, 120] \times [0, 120], t \in [0, 5],
 \end{align}
 %
-with time step size $\Delta_t = 1$ and boundary conditions
+with time step size $\Delta_t = 1$ and $\boldsymbol{u} = [u_x,u_y]$ in $2D$ $\boldsymbol{u} = [u_x,u_y,u_z]$ in 3D. The boundary conditions in $2D$ are given by
 %
 \begin{align}
-    \ldots & && \ldots, \\
-    \ldots & && \ldots.
+    u_x = u_y = 0 & &&y = 0, \\
+		u_y = 8 & &&x = 160,
 \end{align}
 %
-2D: specify thickness, Young's modulus and Poisson's ratio.
+and in 3D by
+\begin{align}
+    u_x = u_z = 0 & &&x = 0, \\
+    u_y = 0 & &&y = 0, \\
+		u_x = 160 & &&x = 160, \\
+		u_y = 8 & &&x = 160.
+\end{align}
+The material parameters are
+\begin{align}
+    E = & 10000\texttt{MPa}, \\
+    \nu = & 0.3, \\
+		\rho = & 5 \times 10^{-9}\texttt{tonne.mm$^3$}.
+\end{align}
 %
 %===============================================================================
 %
 \subsubsection{Computational model}
 %
 \begin{itemize}
-    \item{Length, width, height}
-    \item{Direct/iterative solver}
-    \item{Generated/user mesh}
-    \item{Number of elements}
-    \item{Interpolation order}
-    \item{Number of solver steps (time steps, load steps)}
+    \item{Commandline arguments are:}
+        \subitem{float: length along x-direction}
+        \subitem{float: length along y-direction}
+        \subitem{float: length along z-direction (set to zero for 2D)}
+        \subitem{integer: number of elements in x-direction}
+        \subitem{integer: number of elements in y-direction}
+        \subitem{integer: number of elements in z-direction (set to zero for 2D)}
+        \subitem{integer: interpolation order (1: linear; 2: quadratic)}
+        \subitem{integer: solver type (0: direct; 1: iterative)}
+				\subitem{float: elastic modulus}
+				\subitem{float: Poisson ratio}
+				\subitem{float: displacement percentage load}
+    \item{Commandline arguments for tests are:}
+        \subitem{\ldots}
 \end{itemize}
 %
 %===============================================================================
