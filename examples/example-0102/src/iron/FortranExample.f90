@@ -438,7 +438,9 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
     CALL cmfe_SolverEquations_BoundaryConditionsCreateStart(SolverEquations,BoundaryConditions,Err)
     CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_LEFT_SURFACE,LeftSurfaceNodes,LeftNormalXi,Err)
     CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_RIGHT_SURFACE,RightSurfaceNodes,RightNormalXi,Err)
-    !Set Left and Right Side to zero displacement in each direction
+    CALL cmfe_GeneratedMesh_SurfaceGet(GeneratedMesh,CMFE_GENERATED_MESH_REGULAR_BOTTOM_SURFACE,BottomSurfaceNodes,BottomNormalXi, &
+      & Err)
+    !Set Left and Right Side to zero displacement x and y direction
     DO node_idx=1,SIZE(LeftSurfaceNodes,1) !x-Direction
       NodeNumber=LeftSurfaceNodes(node_idx)
       CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
@@ -452,14 +454,6 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
       CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
       IF(NodeDomain==ComputationalNodeNumber) THEN
         CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,2, &
-          & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
-      ENDIF
-    ENDDO
-    DO node_idx=1,SIZE(LeftSurfaceNodes,1) !z-Direction
-      NodeNumber=LeftSurfaceNodes(node_idx)
-      CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-      IF(NodeDomain==ComputationalNodeNumber) THEN
-        CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,3, &
           & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
       ENDIF
     ENDDO
@@ -479,8 +473,9 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
           & CMFE_BOUNDARY_CONDITION_FIXED,0.0_CMISSRP,Err)
       ENDIF
     ENDDO
-    DO node_idx=1,SIZE(RightSurfaceNodes,1) ! z-Direction
-      NodeNumber=RightSurfaceNodes(node_idx)
+    ! Fix Bottom Side in Z-Direction
+    DO node_idx=1,SIZE(BottomSurfaceNodes,1) ! z-Direction
+      NodeNumber=BottomSurfaceNodes(node_idx)
       CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
       IF(NodeDomain==ComputationalNodeNumber) THEN
         CALL cmfe_BoundaryConditions_AddNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber,3, &
@@ -554,16 +549,22 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
     CALL cmfe_Problem_Solve(Problem,Err)
     ! Export solution
     IF (TIMESTEP.LE.9) THEN
-      WRITE(filename, "(A28,I1)") "results/current_run/Example_",TIMESTEP
-      filename=trim(filename)
-    ELSEIF (TIMESTEP.LE.99) THEN
-      WRITE(filename, "(A28,I2)") "results/current_run/Example_",TIMESTEP
-      filename=trim(filename)
-    ELSEIF (TIMESTEP.LE.999) THEN
-      WRITE(filename, "(A28,I3)") "results/current_run/Example_",TIMESTEP
+      !WRITE(filename, "(A28,I1)") "results/current_run/Example_",TIMESTEP
+      !filename=trim(filename)
+      WRITE(filename, "(A21,I3.3,A1,I3.3,A1,I3.3,A2,I2.2,A1,I2.2,A1,I2.2,A2,I1,A2,I1,A9,I1)") &
+        & "results/current_run/l", &
+        & INT(WIDTH),"x",INT(HEIGHT),"x",INT(LENGTH), &
+        & "_n", &
+        & NUMBER_GLOBAL_X_ELEMENTS,"x",NUMBER_GLOBAL_Y_ELEMENTS,"x",NUMBER_GLOBAL_Z_ELEMENTS, &
+        & "_i",INTERPOLATION_TYPE,"_s",SOLVER_TYPE,"/Example_",TIMESTEP
       filename=trim(filename)
     ELSE
-      WRITE(filename, "(A28,I4)") "results/current_run/Example_",TIMESTEP
+      WRITE(filename, "(A21,I3.3,A1,I3.3,A1,I3.3,A2,I2.2,A1,I2.2,A1,I2.2,A2,I1,A2,I1,A9,I2)") &
+        & "results/current_run/l", &
+        & INT(WIDTH),"x",INT(HEIGHT),"x",INT(LENGTH), &
+        & "_n", &
+        & NUMBER_GLOBAL_X_ELEMENTS,"x",NUMBER_GLOBAL_Y_ELEMENTS,"x",NUMBER_GLOBAL_Z_ELEMENTS, &
+        & "_i",INTERPOLATION_TYPE,"_s",SOLVER_TYPE,"/Example_",TIMESTEP
       filename=trim(filename)
     ENDIF
     CALL cmfe_Fields_NodesExport(Fields,filename,"FORTRAN",Err)
