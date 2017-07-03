@@ -571,7 +571,14 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   END DO
 
   ! Export final solution and topology
-  CALL cmfe_Fields_ElementsExport(Fields,"results/current_run/Example","FORTRAN",Err)
+  WRITE(filename, "(A21,I3.3,A1,I3.3,A1,I3.3,A2,I2.2,A1,I2.2,A1,I2.2,A2,I1,A2,I1,A8)") &
+    & "results/current_run/l", &
+    & INT(WIDTH),"x",INT(HEIGHT),"x",INT(LENGTH), &
+    & "_n", &
+    & NUMBER_GLOBAL_X_ELEMENTS,"x",NUMBER_GLOBAL_Y_ELEMENTS,"x",NUMBER_GLOBAL_Z_ELEMENTS, &
+    & "_i",INTERPOLATION_TYPE,"_s",SOLVER_TYPE,"/Example"
+  filename=trim(filename)
+  CALL cmfe_Fields_ElementsExport(Fields,filename,"FORTRAN",Err)
   CALL cmfe_Fields_Finalise(Fields,Err)
 
   ! Finalise
