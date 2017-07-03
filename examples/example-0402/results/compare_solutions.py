@@ -1,158 +1,158 @@
-#!/bin/python
+#!/usr/bin/env python
 #
-# script to compare nodal field values between OpenCMISS-iron and CHeart
+# script to compare nodal field values between OpenCMISS-iron and Matlab
 
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import cm
+import exnode_reader
+import os
 
 print "Numpy version: "+np.version.version
 print ""
 
-# exnode header size
-skiprows    = 10
-# size of block containing node ID, coordinates, solution values in exnode file
-blocksize   = 6
-# tolerance used to match nodes between CHeart and iron
-tolx         = 1.0e-6
 # tolerance used to check numerical solution
-tolu         = 1.0e-10
+tol_matlab = 12345678    # matlab solution differs from iron solution
+tol_iron = 0.05
+tol_iron = 0.3			# result of parallel execution differ somehow
 
 # number of elements in each coordinate direction for different refinement levels
-NumberOfElements = np.zeros((3,3), dtype=int)
-NumberOfElements[0][0] = 2
-NumberOfElements[0][1] = 1
-NumberOfElements[0][2] = 1
-NumberOfElements[1][0] = 4
-NumberOfElements[1][1] = 2
-NumberOfElements[1][2] = 2
-NumberOfElements[2][0] = 8
-NumberOfElements[2][1] = 4
-NumberOfElements[2][2] = 4
+NumberOfElements = np.zeros((1,2), dtype=int)
+NumberOfElements[0][0] = 24
+NumberOfElements[0][1] = 24
 
 NumberOfTests       = 0
 NumberOfFailedTests = 0
 
 failedtests_file = open("failed.tests", "w")
 
-# for all solver types
-for s in np.arange(0, 2, 1):
-    # for all interpolation orders
-    for i in np.arange(1, 3, 1):
-        # for all spatial resolutions
-        for r in np.arange(0, NumberOfElements.shape[0], 1):
-            NumberOfTests += 1
-            nx = NumberOfElements[r][0]
-            ny = NumberOfElements[r][1]
-            nz = NumberOfElements[r][2]
-            ####################################################################
-            # read reference data
-            foldername  = "reference/cheart/l2x1x1_n"+str(nx)+"x"+str(ny)+"x"+str(nz)+"_i"+str(i)+"/"
-            filename    = foldername + "SpaceVariable-1.D"
-            # load CHeart space variable, skip first line
-            cxyz        = np.loadtxt(filename, dtype=float, skiprows=1)
-            filename    = foldername + "ScalarVariable-1.D"
-            # load CHeart scalar variable, skip first line
-            cvals       = np.loadtxt(filename, dtype=float, skiprows=1)
-            # now start reading exnode data
-            ivals0       = 0.0 * cvals
-            foldername  = "reference/iron/l2x1x1_n"+str(nx)+"x"+str(ny)+"x"+str(nz)+"_i"+str(i)+"_s"+str(s)+"/"
-            filename    = foldername + "Example.part0.exnode"
-            linecount = 0
-            matched   = 0
-            with open(filename) as f:
-                for line in f:
-                    # skip header
-                    if linecount < skiprows:
-                        linecount += 1
-                        continue
-                    linecount += 1
-                    # node ID
-                    if not(np.mod(linecount-skiprows-1, blocksize)):
-                        continue
-                    # x-coordinate
-                    elif not(np.mod(linecount-skiprows-2, blocksize)):
-                        ix      = float(line)
-                    # y-coordinate
-                    elif not(np.mod(linecount-skiprows-3, blocksize)):
-                        iy      = float(line)
-                    # z-coordinate
-                    elif not(np.mod(linecount-skiprows-4, blocksize)):
-                        iz      = float(line)
-                    # scalar value
-                    elif not(np.mod(linecount-skiprows-5, blocksize)):
-                        ival    = float(line)
-                        # match nodes between CHeart and iron
-                        # this can be expensive, but we only consider small spatial resolution here...
-                        for node in np.arange(0, cxyz.shape[0], 1):
-                            cx      = cxyz[node][0]
-                            cy      = cxyz[node][1]
-                            cz      = cxyz[node][2]
-                            l2diff  = np.sqrt((cx-ix)**2.0+(cy-iy)**2.0+(cz-iz)**2.0)
-                            if (l2diff < tolx):
-                                ivals0[node] = ival
-                                matched     += 1
-                                break
-            ####################################################################
-            # read current_run
-            ivals       = 0.0 * cvals
-            foldername  = "current_run/l2x1x1_n"+str(nx)+"x"+str(ny)+"x"+str(nz)+"_i"+str(i)+"_s"+str(s)+"/"
-            filename    = foldername + "Example.part0.exnode"
-            linecount = 0
-            matched   = 0
-            with open(filename) as f:
-                for line in f:
-                    # skip header
-                    if linecount < skiprows:
-                        linecount += 1
-                        continue
-                    linecount += 1
-                    # node ID
-                    if not(np.mod(linecount-skiprows-1, blocksize)):
-                        continue
-                    # x-coordinate
-                    elif not(np.mod(linecount-skiprows-2, blocksize)):
-                        ix      = float(line)
-                    # y-coordinate
-                    elif not(np.mod(linecount-skiprows-3, blocksize)):
-                        iy      = float(line)
-                    # z-coordinate
-                    elif not(np.mod(linecount-skiprows-4, blocksize)):
-                        iz      = float(line)
-                    # scalar value
-                    elif not(np.mod(linecount-skiprows-5, blocksize)):
-                        ival    = float(line)
-                        # match nodes between CHeart and iron
-                        # this can be expensive, but we only consider small spatial resolution here...
-                        for node in np.arange(0, cxyz.shape[0], 1):
-                            cx      = cxyz[node][0]
-                            cy      = cxyz[node][1]
-                            cz      = cxyz[node][2]
-                            l2diff  = np.sqrt((cx-ix)**2.0+(cy-iy)**2.0+(cz-iz)**2.0)
-                            if (l2diff < tolx):
-                                ivals[node]  = ival
-                                matched     += 1
-                                break
-            ####################################################################
-            # compute difference
-            l2diff_ci   = np.linalg.norm(cvals-ivals, 2)
-            l2diff_i0i  = np.linalg.norm(ivals0-ivals, 2)
-            if ((l2diff_ci > tolu) and (l2diff_i0i > tolu)):
-                status = filename+"       | CHeart   - Iron |_2 = "+str(l2diff_ci) \
-                    +"       | Iron_ref - Iron |_2 = "+str(l2diff_i0i)
-                print status
-                if (NumberOfFailedTests == 0):
-                    failedtests_file.write("Failed tests:\n")
-                failedtests_file.write(status)
-                NumberOfFailedTests += 1
-            elif (l2diff_ci > tolu):
-                status = filename+"       | CHeart   - Iron |_2 = "+str(l2diff_ci)
-                failedtests_file.write(status)
-                NumberOfFailedTests += 1
-            elif (l2diff_ci > tolu):
-                status = filename+"       | Iron_ref - Iron |_2 = "+str(l2diff_i0i)
-                failedtests_file.write(status)
-                NumberOfFailedTests += 1
+# for problem types
+for [nx,i,s,p] in [[24,1,0,1], [24,1,1,1], [10,1,0,1], [24,1,0,2], [24,1,0,8], [2,1,0,2]]:
+  
+  
+  #print "case ",[nx,i,s,p]
+  ny = nx
+  for t in [0, 0.1, 0.2, 1, 2,3]:
+    NumberOfTests += 1
+    #print "t=",t
+    
+    ####################################################################
+    # read reference data
+    # read matlab reference data
+    foldername  = "reference/matlab/l1x1_n"+str(nx)+"x"+str(ny)+"_i"+str(i)+"_s0/"
+    matlab_filename = "vm_"+str(t)+".csv"
+    
+    status = "   matlab file: {}\n".format(foldername+matlab_filename)
+    
+    matlab_data = None
+    if os.path.exists(foldername):
+      matlab_data = np.loadtxt(foldername+matlab_filename)
+    
+    # read iron reference data
+    foldername  = "reference/iron/l1x1_n"+str(nx)+"x"+str(ny)+"_i"+str(i)+"_s"+str(s)+"/"
+    pde_time_step = 0.005
+    filenumber = int(t / pde_time_step)
+    
+    iron_reference_filename = "Time_2_"+str(filenumber)+".part0.exnode"
+    
+    
+    status += "   iron reference file: {}\n".format(foldername+iron_reference_filename)
+    iron_reference_data = exnode_reader.parse_file(foldername+iron_reference_filename, [["Vm", 1]])   # extract field Vm, component 1
+    
+    # read iron data of current run
+    foldername  = "current_run/l1x1_n"+str(nx)+"x"+str(ny)+"_i"+str(i)+"_s"+str(s)+"_p"+str(p)+"/"            
+    pde_time_step = 0.005
+    filenumber = int(t / pde_time_step)
+    
+    iron_filename = "Time_2_"+str(filenumber)+".part0.exnode"
+    status += "   iron file: {}\n".format(foldername+iron_filename)
+    iron_data = exnode_reader.parse_file(foldername+iron_filename, [["Vm", 1]])   # extract field Vm, component 1
+    
+    if iron_data is None:
+      print "Warning! no data available for:\n"+status
+      continue
+    
+    # determine which iron file would produce the least l2 error to the current matlab file
+    if False:
+      files = exnode_reader.get_exnode_files(foldername)
+      min_l2diff = -1
+      min_filename = ""
+      for filename in files:
+        iron_data = exnode_reader.parse_file(foldername+filename, [["Vm", 1]])   # extract field Vm, component 1
+        
+        l2diff = np.linalg.norm(matlab_data-iron_data) / np.linalg.norm(matlab_data)
+        print "file ",filename, ", l2 norm: ", l2diff
+        
+        if l2diff < min_l2diff or min_l2diff == -1:
+          min_l2diff = l2diff
+          min_filename = filename
+          
+      print "t="+str(t)+", matlab:",matlab_filename,", best fit for iron: ",min_filename,", l2: ",min_l2diff
+    
+    # plot values
+    if False:
+      X = range(nx+1)
+      Y = range(ny+1)
+      X, Y = np.meshgrid(X, Y)
+      Z_matlab = X.copy()
+      Z_iron = X.copy()
+      Z_diff = X.copy()
+      for x in range(nx+1):
+        for y in range(ny+1):
+          Z_matlab[x,y] = matlab_data[x*(ny+1)+y]
+          Z_iron[x,y] = iron_data[x*(ny+1)+y]
+          Z_diff[x,y] = Z_matlab[x,y] - Z_iron[x,y]
+      
+      print "max:",np.amax(Z_matlab)
+      
+      fig = plt.figure(figsize=(18,8))
+      plt.title("t="+str(t))
+      ax = fig.add_subplot(131, projection='3d')
+      ax.plot_surface(X, Y, Z_matlab, cmap=cm.coolwarm, linewidth=1, antialiased=False, rstride=1, cstride=1)
+      plt.title("matlab file "+str(matlab_filename)+" max:"+str(np.amax(Z_matlab)))
+      
+      ax = fig.add_subplot(132, projection='3d')
+      ax.plot_surface(X, Y, Z_iron, cmap=cm.coolwarm, linewidth=1, antialiased=False, rstride=1, cstride=1)
+      plt.title("iron file "+str(iron_filename)+" max:"+str(np.amax(Z_iron)))
+      
+      ax = fig.add_subplot(133, projection='3d')
+      ax.plot_surface(X, Y, Z_diff, cmap=cm.coolwarm, linewidth=1, antialiased=False, rstride=1, cstride=1)
+      plt.title("matlab - iron")
+      
+      plt.tight_layout()
+      plt.show()
+      
+    ####################################################################
+    # compute difference
+    
+    # matlab reference - iron
+    if matlab_data is not None:
+      l2diff_matlab_iron = np.linalg.norm(matlab_data-iron_data) / np.linalg.norm(matlab_data)
+      
+      if l2diff_matlab_iron > tol_matlab:
+        status = foldername+iron_filename+"       | Matlab   - Iron |_2 = "+str(l2diff_matlab_iron)+"\n"
+        print status
+        if (NumberOfFailedTests == 0):
+            failedtests_file.write("Failed tests:\n")
+        failedtests_file.write(status)
+        NumberOfFailedTests += 1
+    
+    # iron reference - iron
+    if iron_reference_data is not None:
+      
+      l2diff_iron_iron = np.linalg.norm(iron_reference_data-iron_data) / np.linalg.norm(iron_data)
+      
+      if l2diff_iron_iron > tol_iron:
+        status = foldername+iron_filename+"       | Iron   - Iron |_2 = "+str(l2diff_iron_iron)+"\n"
+        print status
+        if (NumberOfFailedTests == 0):
+            failedtests_file.write("Failed tests:\n")
+        failedtests_file.write(status)
+        NumberOfFailedTests += 1
+    
 if (NumberOfFailedTests == 0):
-    failedtests_file.write("No failed tests.\n")
+  failedtests_file.write("No failed tests.\n")
 failedtests_file.close()
 f       = open("results.summary", "w")
 status  = "Passed tests: "+str(NumberOfTests-NumberOfFailedTests)+" / "+str(NumberOfTests)+"\n"

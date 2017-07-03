@@ -105,7 +105,7 @@ PROGRAM MONODOMAINEXAMPLE
 
   LOGICAL :: EXPORT_FIELD
 
-  INTEGER(CMISSIntg) :: n98ModelIndex
+  INTEGER(CMISSIntg) :: CellMLModelIndex
 
   INTEGER(CMISSIntg) :: gNacomponent,StimComponent,node_idx
 
@@ -143,9 +143,9 @@ PROGRAM MONODOMAINEXAMPLE
   !Generic CMISS variables
   
   INTEGER(CMISSIntg) :: NumberOfComputationalNodes,ComputationalNodeNumber
-  INTEGER(CMISSIntg) :: EquationsSetIndex,CellMLIndex
+  INTEGER(CMISSIntg) :: EquationsSetIndex,CellMLIndex,StimulationNodeIdx
   INTEGER(CMISSIntg) :: FirstNodeNumber,LastNodeNumber
-  INTEGER(CMISSIntg) :: FirstNodeDomain,LastNodeDomain,NodeDomain,StimulationNodeIdx
+  INTEGER(CMISSIntg) :: FirstNodeDomain,LastNodeDomain,NodeDomain
   INTEGER(CMISSIntg) :: Err
   
 #ifdef WIN32
@@ -252,10 +252,10 @@ PROGRAM MONODOMAINEXAMPLE
     ! BASIS_CUBIC_SIMPLEX_INTERPOLATION=9 !<Cubic Simplex interpolation specification \see BASIS_ROUTINES_InterpolationSpecifications,BASIS_ROUTINES
     PDE_TIME_STEP = 0.05_CMISSRP
     ODE_TIME_STEP = 0.001_CMISSRP
-    TIME_STOP=1.00
+    TIME_STOP=3.00
     OUTPUT_FREQUENCY=1
     CellmlFile="n98.xml"
-    SLOW_TWITCH=.TRUE.
+    SLOW_TWITCH=.FALSE.
   ENDIF
 
   ! determine file name for output files
@@ -421,20 +421,20 @@ PROGRAM MONODOMAINEXAMPLE
   CALL cmfe_CellML_Initialise(CellML,Err)
   CALL cmfe_CellML_CreateStart(CellMLUserNumber,Region,CellML,Err)
   !Import a Noble 1998 model from a file
-  CALL cmfe_CellML_ModelImport(CellML,CellmlFile,n98ModelIndex,Err)
-  CALL cmfe_CellML_VariableSetAsKnown(CellML,n98ModelIndex,"fast_sodium_current/g_Na ",Err)
-  CALL cmfe_CellML_VariableSetAsKnown(CellML,n98ModelIndex,"membrane/IStim",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_K1",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_to",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_K",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_K_ATP",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_Ca_L_K",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_b_K",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_NaK",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_Na",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_b_Na",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_Ca_L_Na",Err)
-  CALL cmfe_CellML_VariableSetAsWanted(CellML,n98ModelIndex,"membrane/i_NaCa",Err)
+  CALL cmfe_CellML_ModelImport(CellML,CellmlFile,CellMLModelIndex,Err)
+  CALL cmfe_CellML_VariableSetAsKnown(CellML,CellMLModelIndex,"fast_sodium_current/g_Na ",Err)
+  CALL cmfe_CellML_VariableSetAsKnown(CellML,CellMLModelIndex,"membrane/IStim",Err)
+  CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_K1",Err)
+  CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_to",Err)
+  CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_K",Err)
+  CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_K_ATP",Err)
+  CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_Ca_L_K",Err)
+  CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_b_K",Err)
+  CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_NaK",Err)
+  CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_Na",Err)
+  CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_b_Na",Err)
+  CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_Ca_L_Na",Err)
+  CALL cmfe_CellML_VariableSetAsWanted(CellML,CellMLModelIndex,"membrane/i_NaCa",Err)
   !Finish the CellML environment
   CALL cmfe_CellML_CreateFinish(CellML,Err)
 
@@ -443,8 +443,8 @@ PROGRAM MONODOMAINEXAMPLE
   !Now we can set up the field variable component <--> CellML model variable mappings.
   !Map Vm
   CALL cmfe_CellML_CreateFieldToCellMLMap(CellML,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,CMFE_FIELD_VALUES_SET_TYPE, &
-    & n98ModelIndex,"membrane/V",CMFE_FIELD_VALUES_SET_TYPE,Err)
-  CALL cmfe_CellML_CreateCellMLToFieldMap(CellML,n98ModelIndex,"membrane/V",CMFE_FIELD_VALUES_SET_TYPE, &
+    & CellMLModelIndex,"membrane/V",CMFE_FIELD_VALUES_SET_TYPE,Err)
+  CALL cmfe_CellML_CreateCellMLToFieldMap(CellML,CellMLModelIndex,"membrane/V",CMFE_FIELD_VALUES_SET_TYPE, &
     & DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,CMFE_FIELD_VALUES_SET_TYPE,Err)
   !Finish the creation of CellML <--> OpenCMISS field maps
   CALL cmfe_CellML_FieldMapsCreateFinish(CellML,Err)
@@ -497,17 +497,21 @@ PROGRAM MONODOMAINEXAMPLE
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,FirstNodeNumber,1,FirstNodeDomain,Err)
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,LastNodeNumber,1,LastNodeDomain,Err)
   
-  CALL cmfe_CellML_FieldComponentGet(CellML,n98ModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"membrane/IStim",StimComponent,Err)
+  CALL cmfe_CellML_FieldComponentGet(CellML,CellMLModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"membrane/IStim",StimComponent,Err)
   !turn stimulus on at central point
-  StimulationNodeIdx = INT(CEILING(DBLE((NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1))/2))
+  StimulationNodeIdx = CEILING(DBLE((NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1))/2)
+  
+  !CALL cmfe_PrintNodesMapping(Decomposition,Err)
+  
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,StimulationNodeIdx,1,NodeDomain,Err)
   IF(NodeDomain==ComputationalNodeNumber) THEN
+    PRINT *, ComputationalNodeNumber, " on this domain"
     CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
       & StimulationNodeIdx,StimComponent,STIM_VALUE,Err)
   ENDIF
   
   !Set up the g_Na gradient
-  CALL cmfe_CellML_FieldComponentGet(CellML,n98ModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"fast_sodium_current/g_Na", &
+  CALL cmfe_CellML_FieldComponentGet(CellML,CellMLModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"fast_sodium_current/g_Na", &
     & gNacomponent,Err)
   !Loop over the nodes
   DO node_idx=1,LastNodeNumber
@@ -526,6 +530,7 @@ PROGRAM MONODOMAINEXAMPLE
   
   !Start the creation of a problem.
   CALL cmfe_Problem_Initialise(Problem,Err)
+  !Set the Stimulus at half the bottom nodes
   CALL cmfe_Problem_CreateStart(ProblemUserNumber,[CMFE_PROBLEM_BIOELECTRICS_CLASS,CMFE_PROBLEM_MONODOMAIN_EQUATION_TYPE, &
     & CMFE_PROBLEM_MONODOMAIN_GUDUNOV_SPLIT_SUBTYPE],Problem,Err)
   !Finish the creation of a problem.
