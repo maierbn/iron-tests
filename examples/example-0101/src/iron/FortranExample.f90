@@ -565,8 +565,6 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
     & NUMBER_GLOBAL_X_ELEMENTS,"x",NUMBER_GLOBAL_Y_ELEMENTS,"x",NUMBER_GLOBAL_Z_ELEMENTS, &
     & "_i",INTERPOLATION_TYPE,"_s",SOLVER_TYPE,"/Example"
   filename=trim(filename)
-
-
   CALL cmfe_Fields_ElementsExport(Fields,filename,"FORTRAN",Err)
   CALL cmfe_Fields_Finalise(Fields,Err)
 
