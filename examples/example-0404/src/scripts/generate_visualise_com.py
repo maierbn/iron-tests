@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import subprocess
+
+# This script adds the names of all *.exnode files in the current directory as cmgui load command to the beginning of visualise.com.
+# It is intentionally not fully automated, e.g. you have to provide your cmgui executable in cmgui_command and check the output in visualise.com. It will overwrite that file, so multiple invocations of this script generate the input files more often.
+
+
+
 import os
 import sys
 import numpy as np
