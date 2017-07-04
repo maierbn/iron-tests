@@ -4,7 +4,7 @@ default:
 	make debug
 	make release
 	make compare
-	make visualize
+	make create-figures
 
 debug:
 	bash run_example.sh debug
