@@ -24,3 +24,6 @@ clean:
 	rm -rf results/failed.tests results/results.summary
 	rm -f  failed.tests results.summary
 	rm -rf doc/figures/*-eps-converted-to.pdf
+	rm -rf Time*
+	rm -rf tmp*
+	rm Monodomain*
