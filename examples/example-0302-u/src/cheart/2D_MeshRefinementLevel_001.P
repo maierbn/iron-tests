@@ -1,5 +1,5 @@
 
-#timestep=1  1000  0.1
+#timestep=1  1000  0.001
 
 #FluidElement=TRIANGLE_ELEMENT
 

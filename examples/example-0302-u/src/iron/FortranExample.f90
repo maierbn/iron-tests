@@ -263,9 +263,9 @@ PROGRAM LidDrivenCavity
   CASE(1)
     WRITE(Filename, "(A18,I1,A40)") "src/cheart/meshes/",NumberOfDimensions,"D_MeshRefinementLevel_001/domain_quad_FE"
   CASE(2)
-    WRITE(Filename, "(A)") "src/cheart/meshes/MeshRefinementLevel_002/domain_quad_FE"
+    WRITE(Filename, "(A18,I1,A40)") "src/cheart/meshes/",NumberOfDimensions,"D_MeshRefinementLevel_002/domain_quad_FE"
   CASE(3)
-    WRITE(Filename, "(A)") "src/cheart/meshes/MeshRefinementLevel_003/domain_quad_FE"
+    WRITE(Filename, "(A18,I1,A40)") "src/cheart/meshes/",NumberOfDimensions,"D_MeshRefinementLevel_003/domain_quad_FE"
   CASE DEFAULT
     WRITE(Filename, "(A)") "src/cheart/meshes/MeshRefinementLevel_001/domain_quad_FE"
   END SELECT
@@ -284,7 +284,7 @@ PROGRAM LidDrivenCavity
   ENDIF
   ! Read CHeart mesh based on the given command line arguments
   ! Read mesh info
-  WRITE(*,*) "Reading CHeart mesh data file "//TRIM(FileName)
+  WRITE(*,*) "Reading CHeart mesh data file "//TRIM(Filename)
   CALL cmfe_ReadMeshInfo(trim(Filename), NumberOfDimensions, NumberOfNodes, NumberOfElements, &
     & NumberOfNodesPerElement, NumberOfBoundaryPatches, NumberOfBoundaryPatchComponents, "CHeart", Err)
   ! Allocate variables to store mesh data
@@ -488,7 +488,7 @@ PROGRAM LidDrivenCavity
         & GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,1, &
         & 1,1,NodeNumber,2,y,Err)
       vy = 0.0_CMISSRP
-      vx = 0.0_CMISSRP
+      vx = 1.0_CMISSRP
       CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
         & 1,CMFE_BOUNDARY_CONDITION_FIXED,vx,Err)
       CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
@@ -550,8 +550,9 @@ PROGRAM LidDrivenCavity
   ! Solve multiple timesteps
   CALL cmfe_Fields_Initialise(Fields,Err)
   CALL cmfe_Fields_Create(Region,Fields,Err)
-  CALL cmfe_Fields_ElementsExport(Fields,"results/current_run/2D_MeshRefinementLevel_001/Example","FORTRAN",Err)
-  CALL cmfe_Fields_NodesExport(Fields,"results/current_run/2D_MeshRefinementLevel_001/Example","FORTRAN",Err)
+  WRITE(Filename, "(A45,I1,A8)") "results/current_run/2D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example"
+  CALL cmfe_Fields_ElementsExport(Fields,Filename,"FORTRAN",Err)
+  CALL cmfe_Fields_NodesExport(Fields,Filename,"FORTRAN",Err)
   DO TimeStep=1,NumberOfTimeSteps
     LoopStartTime=StartTime+(TimeStep-1_CMISSIntg)*TimeStepSize
     LoopStopTime=StartTime+TimeStep*TimeStepSize
@@ -576,12 +577,7 @@ PROGRAM LidDrivenCavity
         IF(abs(x)<1.0e-6_CMISSRP) CYCLE
         IF(abs(x)>=1.0_CMISSRP) CYCLE
         vy = 0.0_CMISSRP
-        IF(TimeStep<10) THEN
-          vx = 1.0_CMISSRP*LoopStopTime*100.0_CMISSRP
-        ELSE
-          vx = 1.0_CMISSRP
-        END IF
-        WRITE(*,*) vx,vy
+        vx = 1.0_CMISSRP
         CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
           & 1,1,NodeNumber,1,vx,Err)
         CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
@@ -593,16 +589,16 @@ PROGRAM LidDrivenCavity
     CALL cmfe_Problem_Solve(Problem,Err)
     ! Export solution
     IF(TIMESTEP.LE.9) THEN
-      WRITE(filename, "(A55,I1)") "results/current_run/2D_MeshRefinementLevel_001/Example_",TIMESTEP
+      WRITE(filename, "(A45,I1,A9,I1)") "results/current_run/2D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example_",TIMESTEP
       filename=trim(filename)
     ELSEIF(TIMESTEP.LE.99) THEN
-      WRITE(filename, "(A55,I2)") "results/current_run/2D_MeshRefinementLevel_001/Example_",TIMESTEP
+      WRITE(filename, "(A45,I1,A9,I2)") "results/current_run/2D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example_",TIMESTEP
       filename=trim(filename)
     ELSEIF(TIMESTEP.LE.999) THEN
-      WRITE(filename, "(A28,I3)") "results/current_run/Example_",TIMESTEP
+      WRITE(filename, "(A45,I1,A9,I3)") "results/current_run/2D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example_",TIMESTEP
       filename=trim(filename)
     ELSE
-      WRITE(filename, "(A28,I4)") "results/current_run/Example_",TIMESTEP
+      WRITE(filename, "(A45,I1,A9,I4)") "results/current_run/2D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example_",TIMESTEP
       filename=trim(filename)
     END IF
     CALL cmfe_Fields_NodesExport(Fields,filename,"FORTRAN",Err)
