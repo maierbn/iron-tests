@@ -1,14 +1,14 @@
 #Read in the sequence of nodal positions.
 for $i (1..5)
   {
-	 $filename = sprintf("results/current_run/l160x120x000_n08x06x00_i1_s0/Example_%d.part0.exnode", $i);
+	 $filename = sprintf("results/current_run/l160x120x000_n32x24x00_i1_s0/Example_%d.part0.exnode", $i);
 	 
 	 print "Reading $filename time $i\n";
 	 gfx read node "$filename" time $i;
   }
 
 #Read in the element description
-gfx read elements results/current_run/l160x120x000_n08x06x00_i1_s0/Example.part0.exelem;
+gfx read elements results/current_run/l160x120x000_n32x24x00_i1_s0/Example.part0.exelem;
 
 gfx define field xx add fields Displacement.1 Undeformed.x
 gfx define field yy add fields Displacement.2 Undeformed.y
@@ -43,11 +43,11 @@ gfx create spectrum displacement_spectrum
 
 gfx modify g_element "/" surfaces coordinate Deformed tessellation default LOCAL select_on material black spectrum displacement_spectrum selected_material default_selected render_wireframe;
 
-gfx modify spectrum displacement_spectrum linear reverse range 0 12.8 extend_above extend_below rainbow colour_range 0 1 component 1
+gfx modify spectrum displacement_spectrum linear reverse range -1.8 0.0 extend_above extend_below rainbow colour_range 0 1 component 1
 
 ########creating nodes with labels########
 
-gfx modify g_element "/" node_points subgroup "Region 1" coordinate Deformed LOCAL glyph point general size "1*1*1" centre 0,0,0 font default label Deformed select_on material black selected_material default_selected;
+gfx modify g_element "/" node_points subgroup "Region 1" coordinate Deformed LOCAL glyph point general size "1*1*1" centre 0,0,0 font default select_on material black selected_material default_selected;
 
 ######## Creating another surface to show undeformed GEOMETRY ########
 
