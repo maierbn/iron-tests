@@ -504,9 +504,13 @@ PROGRAM MONODOMAINEXAMPLE
   
   CALL cmfe_CellML_FieldComponentGet(CellML,CellMLModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"membrane/i_Stim",StimComponent,Err)
   !turn stimulus on at central point
-  StimulationNodeIdx = INT(CEILING(DBLE((NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1))/2))
+  StimulationNodeIdx = CEILING(DBLE((NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1))/2)
+  
+  !CALL cmfe_PrintNodesMapping(Decomposition,Err)
+  
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,StimulationNodeIdx,1,NodeDomain,Err)
   IF(NodeDomain==ComputationalNodeNumber) THEN
+    PRINT *, ComputationalNodeNumber, " on this domain"
     CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &
       & StimulationNodeIdx,StimComponent,STIM_VALUE,Err)
   ENDIF

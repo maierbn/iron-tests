@@ -16,7 +16,7 @@ compare:
 	cd results; python compare_solutions.py
 
 create-figures:
-	cd examples; bash create_figures.sh
+	cd results; bash create_animations.sh
 
 clean:
 	rm -rf *.diag *.log *.aux *.out debug/ release/
