@@ -11,7 +11,7 @@ from matplotlib import animation
 import sys
 
 def animate(t):
-  global foldername
+  global foldername, image_name
   ax1.clear()
   
   # get all exnode files sorted in that directory
@@ -40,6 +40,11 @@ def animate(t):
   ax1.set_zlim(-80,30)
   plt.title("t = "+str(t*0.005))
       
+  if t % 100 == 0:
+    filename = image_name+"_t"+str(t)+".png"
+    plt.savefig(filename)
+    print "saved to {}".format(filename)
+      
 # get folder name from command line argument
 foldername = "."
 if len(sys.argv) > 1:
@@ -49,17 +54,19 @@ if len(sys.argv) > 1:
 if foldername[-1] != "/":
   foldername = foldername + "/"
 
+# create file names
+image_name = "{}".format(foldername).replace("/", "_")
+animation_name = "{}.mp4".format(foldername).replace("/", "_")
+
 # create figure
 fig = plt.figure(1)
 ax1 = fig.gca(projection='3d')
 plt.tight_layout()
 animate(0)
-      
 
 anim = animation.FuncAnimation(fig, animate,
                                frames=1000, interval=20)
 # save to animation
-animation_name = "{}.mp4".format(foldername).replace("/", "_")
 anim.save(animation_name)
 print "saved to {}".format(animation_name)
 #plt.show()
