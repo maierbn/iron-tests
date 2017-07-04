@@ -51,8 +51,13 @@ The material parameters are
 				\subitem{float: elastic modulus}
 				\subitem{float: Poisson ratio}
 				\subitem{float: displacement percentage load}
-    \item{Commandline arguments for tests are:}
-        \subitem{\ldots}
+    \item{Command line arguments for tests are:}
+        \subitem{160 120 0 8 6 0 1 0 10000 0.3 0.05}
+				\subitem{160 120 0 16 12 0 1 0 10000 0.3 0.05}
+				\subitem{160 120 0 32 24 0 1 0 10000 0.3 0.05}
+				\subitem{160 120 120 8 6 6 1 0 10000 0.3 0.05}
+				\subitem{160 120 120 16 12 12 1 0 10000 0.3 0.05}
+				\subitem{160 120 120 32 24 24 1 0 10000 0.3 0.05}
 \end{itemize}
 %
 %===============================================================================
@@ -61,14 +66,14 @@ The material parameters are
 %
 \begin{figure}[h!]
     \centering 
-    \includegraphics[width=\columnwidth]{examples/example-0101/doc/figures/l160x120x000_n32x24x00_i1_s0.png} 
+    \includegraphics[width=0.9\columnwidth]{examples/example-0101/doc/figures/l160x120x000_n32x24x00_i1_s0.png} 
     \caption{Results, iron $2D$ fine mesh.}
     \label{example-0101-iron-2D-fig}
 \end{figure}
 %
 \begin{figure}[h!]
     \centering 
-    \includegraphics[width=\columnwidth]{examples/example-0101/doc/figures/l160x120x120_n32x24x24_i1_s0.png} 
+    \includegraphics[width=0.9\columnwidth]{examples/example-0101/doc/figures/l160x120x120_n32x24x24_i1_s0.png} 
     \caption{Results, iron $3D$ fine mesh.}
     \label{example-0101-iron-3D-fig}
 \end{figure}
@@ -97,13 +102,13 @@ where $N$ is the total number of nodes along the free-edge. The results over the
     \label{example-0101-abaqus-3D-fig}
 \end{figure}
 %
-\begin{table}[h]
+\begin{table}[h!]
 	\centering
     \begin{tabular}{llll}
     Dimension & Mesh 		& $L_2\texttt{-norm}$			& \ldots \\ \hline
     $2D$      & Coarse 	& $5.322\times 10^{-16}$	& \ldots \\
     $2D$      & Medium  & $1.559\times 10^{-15}$	& \ldots \\
-    $2D$      & Fine  	& $2.900\times 10^{-15}$		& \ldots \\
+    $2D$      & Fine  	& $2.900\times 10^{-15}$	& \ldots \\
     $3D$      & Coarse  & $3.071\times 10^{-17}$	& \ldots \\
     $3D$      & Medium  & $2.125\times 10^{-17}$	& \ldots \\
 		$3D$			&	Fine 		&	$2.924\times 10^{-17}$	& \ldots 
