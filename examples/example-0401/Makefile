@@ -26,3 +26,4 @@ clean:
 	rm -rf doc/figures/*-eps-converted-to.pdf
 	rm -rf Time*
 	rm -rf tmp*
+	rm -rf Monodomain*
