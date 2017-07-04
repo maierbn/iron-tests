@@ -57,6 +57,7 @@ examples/example-*/*.out
 examples/example-*/results/current_run
 examples/example-*/debug
 examples/example-*/release
+examples/example-*/doc/figures/current_run_*eps
 
 # Misc
 *~

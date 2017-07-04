@@ -5,8 +5,12 @@
 %
 \subsection{Example-0302-u}
 %
-Example uses user-defined regular meshes in CHeart mesh format with quadratic-
-linear interpolation for velocity-pressure and solves a dynamic problem.
+Example uses user-defined simplex meshes in CHeart mesh format with
+quadratic/linear interpolation for velocity/pressure
+and solves a dynamic problem.
+
+Setup is the well-known lid-driven cavity problem
+on the unit square or unit cube in two and three dimensions
 %
 %===============================================================================
 %
@@ -22,10 +26,10 @@ We solve the incompressible Navier-Stokes equation,
 with boundary conditions
 %
 \begin{align}
-    u = 0 & &&x = 0, \\
-    u = 0 & &&x = 1, \\
-    u = 0 & &&y = 0, \\
-    u = 1 & &&y = 1.
+    \boldsymbol{v} &= 0         &&x = 0, \\
+    \boldsymbol{v} &= 0         &&x = 1, \\
+    \boldsymbol{v} &= 0         &&y = 0, \\
+    \boldsymbol{v} &= [1, 0]^T  &&y = 1.
 \end{align}
 %
 Density $\rho = 1$, viscosity $\mu = 0.0025$. Thus, Reynolds number $Re = 400$.
@@ -44,12 +48,12 @@ We solve the incompressible Navier-Stokes equation,
 with boundary conditions
 %
 \begin{align}
-    u = 0 & &&x = 0, \\
-    u = 0 & &&x = 1, \\
-    u = 0 & &&y = 0, \\
-    u = 1 & &&y = 1, \\
-    u = 0 & &&z = 0, \\
-    u = 0 & &&z = 1,
+    \boldsymbol{v} &= 0         &&x = 0, \\
+    \boldsymbol{v} &= 0         &&x = 1, \\
+    \boldsymbol{v} &= 0         &&y = 0, \\
+    \boldsymbol{v} &= [1, 0]^T  &&y = 1, \\
+    \boldsymbol{v} &= 0         &&z = 0, \\
+    \boldsymbol{v} &= 0         &&z = 1.
 \end{align}
 %
 Density $\rho = 1$, viscosity $\mu = 0.01$. Thus, Reynolds number $Re = 100$.
