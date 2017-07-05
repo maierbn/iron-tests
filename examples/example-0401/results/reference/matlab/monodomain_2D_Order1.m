@@ -168,7 +168,7 @@ function [] = monodomain_1D_Order1()
     %store the transmembrane voltage for all time steps
     V_m_time(time,:) = V_m;
     % store the transmembrane voltage at the output node
-    V_m_out(time)=V_m(out_node);
+    %V_m_out(time)=V_m(out_node);
     
     
     name=['vm_' num2str((time)*time_step_pde) '.csv'];

@@ -6,6 +6,8 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
+import sys
+sys.path.append('../src/scripts/')    # add path of exnode_reader
 import exnode_reader
 import os
 
@@ -33,7 +35,7 @@ for [nx,i,s,p] in [[24,1,0,1], [24,1,1,1], [10,1,0,1], [24,1,0,2], [24,1,0,8], [
   
   #print "case ",[nx,i,s,p]
   ny = nx
-  for t in [0, 0.1, 0.2, 1, 2,3]:
+  for t in [0.01, 0.1, 0.2, 1, 2,3]:
     NumberOfTests += 1
     #print "t=",t
     

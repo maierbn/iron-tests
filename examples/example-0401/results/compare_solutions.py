@@ -6,6 +6,8 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
+import sys
+sys.path.append('../src/scripts/')    # add path of exnode_reader
 import exnode_reader
 import os
 
@@ -28,11 +30,12 @@ failedtests_file = open("failed.tests", "w")
 
 # for problem types
 for [nx,i,s,p] in [[24,1,0,1], [24,1,1,1], [10,1,0,1], [24,1,0,2], [24,1,0,8], [2,1,0,2]]:
+#for [nx,i,s,p] in [[24,2,0,1]]:
   
   
   #print "case ",[nx,i,s,p]
   ny = nx
-  for t in [0, 0.1, 0.2, 1, 2,3]:
+  for t in [0.01, 0.1, 0.2, 1, 2,3]:
     NumberOfTests += 1
     #print "t=",t
     
@@ -69,7 +72,7 @@ for [nx,i,s,p] in [[24,1,0,1], [24,1,1,1], [10,1,0,1], [24,1,0,2], [24,1,0,8], [
     iron_data = exnode_reader.parse_file(foldername+iron_filename, [["Vm", 1]])   # extract field Vm, component 1
     
     if iron_data is None:
-      print "Warning! no data available for:\n"+status
+      print "Warning! no current iron data available for:\n"+status
       continue
     
     # determine which iron file would produce the least l2 error to the current matlab file
