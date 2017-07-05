@@ -4,7 +4,7 @@ default:
 	make debug
 	make release
 	make compare
-	make visualize
+	make create-figures
 
 debug:
 	bash run_example.sh debug
@@ -24,3 +24,6 @@ clean:
 	rm -rf results/failed.tests results/results.summary
 	rm -f  failed.tests results.summary
 	rm -rf doc/figures/*-eps-converted-to.pdf
+	rm -rf Time*
+	rm -rf tmp*
+	rm -rf Monodomain*
