@@ -1,0 +1,70 @@
+
+#timestep=1  1000  0.001
+
+#FluidElement=TRIANGLE_ELEMENT
+
+#FluidPressure=NODAL_LAGRANGE1
+#FluidVelocity=NODAL_LAGRANGE2
+
+#FluidPressureTopology=meshes/2D_MeshRefinementLevel_003/domain_lin
+#FluidVelocityTopology=meshes/2D_MeshRefinementLevel_003/domain_quad
+
+#FluidDensity=1.0
+#FluidViscosity=0.0025
+
+#patch_x0=1
+#patch_x1=2
+#patch_y0=3
+#patch_y1=4
+
+#inflow=inletVel
+
+!DefExpression{inletVel}
+    1.0
+    0.0
+
+!SetOutputPath{../../results/reference/cheart/2D_MeshRefinementLevel_003/}
+
+!DefSolverGroup={FLOW|time|FluidMatrix}
+  !DefSolverSubGroup={FLOW|seq_fp_linesearch|FluidMatrix|ScaleFirstResidual[100]}
+  !SetSolverGroup={FLOW|SUBITERATION|4}
+  !SetSolverGroup={FLOW|L2TOL|1e-6}
+
+!DefSolverMatrix={FluidMatrix|SOLVER_MUMPS|Fluid}
+  !SetSolverMatrix={FluidMatrix|Ordering|serial}
+  !SetSolverMatrix={FluidMatrix|MemoryBuffer|200}
+
+!DefTimeStepScheme={time}
+  #timestep
+
+!UseBasis={FPresBasis |#FluidElement|#FluidPressure|KEAST_LYNESS6}
+!UseBasis={FVelBasis  |#FluidElement|#FluidVelocity|KEAST_LYNESS6}
+
+!DefTopology={FluidPresTP|#FluidPressureTopology|FPresBasis}
+!DefTopology={FluidVelTP |#FluidVelocityTopology|FVelBasis}
+
+!DefInterface={OneToOne|FluidVelTP|FluidPresTP}
+
+!DefVariablePointer={FluidPres  |FluidPresTP|1}
+!DefVariablePointer={Vel        |FluidVelTP |2}
+!DefVariablePointer={FluidSpace |FluidVelTP |#FluidVelocityTopology|2}
+
+!SetExportFrequency={FluidSpace|1}
+!SetExportFrequency={Vel       |1}
+!SetExportFrequency={FluidPres |1}
+
+!DefProblem={Fluid|TRANSIENT_NAVIER_STOKES_FLOW}
+  !UseVariablePointer={Space|FluidSpace}
+  !UseVariablePointer={Velocity|Vel}
+  !UseVariablePointer={Pressure|FluidPres}
+  !Density={#FluidDensity}
+  !Viscosity={#FluidViscosity}
+  !SetRootTopology={FluidVelTP}
+  !SetProblemMatrixCalculation={EVALUATE_EVERY_BUILD}
+  !Patch-labels={2}
+    FluidInlet  PATCH  #patch_y1
+    FluidWall   PATCH  #patch_x0 #patch_x1 #patch_y0
+  !Boundary-patch-definitions
+    FluidInlet   Vel  Dirichlet      #inflow
+    FluidWall    Vel  Dirichlet      0.0  0.0
+
