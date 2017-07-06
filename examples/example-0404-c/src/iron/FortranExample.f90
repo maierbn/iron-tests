@@ -393,11 +393,11 @@ PROGRAM MONODOMAINEXAMPLE
   !Set Cm, slow-twitch
     CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
       & 0.58_CMISSRP,Err)
-    STIM_VALUE=1200.0_CMISSRP
+    STIM_VALUE=(1200.0_CMISSRP/24.0_CMISSRP)*(NUMBER_GLOBAL_X_ELEMENTS/INTERPOLATION_TYP)
   ELSE  
     CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
     & 1.0_CMISSRP,Err)
-    STIM_VALUE=2000.0_CMISSRP
+    STIM_VALUE=(2000.0_CMISSRP/24.0_CMISSRP)*(NUMBER_GLOBAL_X_ELEMENTS/INTERPOLATION_TYP)
   ENDIF  
   
   !Set conductivity
@@ -484,13 +484,14 @@ PROGRAM MONODOMAINEXAMPLE
 
   !Find the domains of the first and last nodes
   FirstNodeNumber=1
-  LastNodeNumber=(NUMBER_GLOBAL_X_ELEMENTS+1)
+  LastNodeNumber=(NUMBER_GLOBAL_X_ELEMENTS*INTERPOLATION_TYPE+1)
+  
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,FirstNodeNumber,1,FirstNodeDomain,Err)
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,LastNodeNumber,1,LastNodeDomain,Err)
   
   CALL cmfe_CellML_FieldComponentGet(CellML,CellMLModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"membrane/i_Stim",StimComponent,Err)
   !turn stimulus on at central point
-  StimulationNodeIdx = INT(CEILING(DBLE(NUMBER_GLOBAL_X_ELEMENTS+1)/2))
+  StimulationNodeIdx = INT(CEILING(DBLE(NUMBER_GLOBAL_X_ELEMENTS*INTERPOLATION_TYPE+1)/2))
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,StimulationNodeIdx,1,NodeDomain,Err)
   IF(NodeDomain==ComputationalNodeNumber) THEN
     CALL cmfe_Field_ParameterSetUpdateNode(CellMLParametersField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,1,1, &

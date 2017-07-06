@@ -497,14 +497,14 @@ PROGRAM MONODOMAINEXAMPLE
 
   !Find the domains of the first and last nodes
   FirstNodeNumber=1
-  LastNodeNumber=(NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1)
+  LastNodeNumber=(NUMBER_GLOBAL_X_ELEMENTS*INTERPOLATION_TYPE+1)*(NUMBER_GLOBAL_Y_ELEMENTS*INTERPOLATION_TYPE+1)
   
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,FirstNodeNumber,1,FirstNodeDomain,Err)
   CALL cmfe_Decomposition_NodeDomainGet(Decomposition,LastNodeNumber,1,LastNodeDomain,Err)
   
   CALL cmfe_CellML_FieldComponentGet(CellML,CellMLModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"membrane/i_Stim",StimComponent,Err)
   !turn stimulus on at central point
-  StimulationNodeIdx = CEILING(DBLE((NUMBER_GLOBAL_X_ELEMENTS+1)*(NUMBER_GLOBAL_Y_ELEMENTS+1))/2)
+  StimulationNodeIdx = CEILING(DBLE((NUMBER_GLOBAL_X_ELEMENTS*INTERPOLATION_TYPE+1)*(NUMBER_GLOBAL_Y_ELEMENTS*INTERPOLATION_TYPE+1))/2)
   
   !CALL cmfe_PrintNodesMapping(Decomposition,Err)
   
