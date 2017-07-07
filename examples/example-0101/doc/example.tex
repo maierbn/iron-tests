@@ -58,6 +58,12 @@ The material parameters are
 				\subitem{160 120 120 8 6 6 1 0 10000 0.3 0.05}
 				\subitem{160 120 120 16 12 12 1 0 10000 0.3 0.05}
 				\subitem{160 120 120 32 24 24 1 0 10000 0.3 0.05}
+        \subitem{160 120 0 8 6 0 2 0 10000 0.3 0.05}
+				\subitem{160 120 0 16 12 0 2 0 10000 0.3 0.05}
+				\subitem{160 120 0 32 24 0 2 0 10000 0.3 0.05}
+				\subitem{160 120 120 8 6 6 2 0 10000 0.3 0.05}
+				\subitem{160 120 120 16 12 12 2 0 10000 0.3 0.05}
+				\subitem{160 120 120 32 24 24 2 0 10000 0.3 0.05}				
 \end{itemize}
 %
 %===============================================================================
@@ -84,7 +90,7 @@ The material parameters are
 %
 The iron results are compared to those from Abaqus (version 2017). The figures below show selected results from the validation simulations carried out in Abaqus and provide a qualitative validation. A quantitative validation was carried out by comparing the horizontal displacement $u_y$ along the free-edge ($y=120$ for 2D and $y=z=120$ for 3D) and computing the L2-norm accodring to
 \begin{align}
-    L_2\texttt{-norm} = \sum_{i=1}^{N} \sqrt{\left(u_{y,\texttt{abaqus}}^i-u_{y,\texttt{iron}}^i  \right)^2},
+    L_2\texttt{-norm} = \frac{1}{N} \times  \sum_{i=1}^{N} \sqrt{\left(u_{y,\texttt{abaqus}}^i-u_{y,\texttt{iron}}^i  \right)^2},
 \end{align}
 where $N$ is the total number of nodes along the free-edge. The results over the mesh refinements are given in Table \ref{tab:example-0101-valid-Iron-Abaqus}.
 %
@@ -105,13 +111,19 @@ where $N$ is the total number of nodes along the free-edge. The results over the
 \begin{table}[h!]
 	\centering
     \begin{tabular}{llll}
-    Dimension & Mesh 		& $L_2\texttt{-norm}$			& \ldots \\ \hline
-    $2D$      & Coarse 	& $5.322\times 10^{-16}$	& \ldots \\
-    $2D$      & Medium  & $1.559\times 10^{-15}$	& \ldots \\
-    $2D$      & Fine  	& $2.900\times 10^{-15}$	& \ldots \\
-    $3D$      & Coarse  & $3.071\times 10^{-17}$	& \ldots \\
-    $3D$      & Medium  & $2.125\times 10^{-17}$	& \ldots \\
-		$3D$			&	Fine 		&	$2.924\times 10^{-17}$	& \ldots 
+    Dimension & Mesh 		& $L_2\texttt{-norm}$			& Interpolation \\ \hline
+    $2D$      & Coarse 	& $5.322\times 10^{-16}$	& Linear \\
+    $2D$      & Medium  & $1.559\times 10^{-15}$	& Linear \\
+    $2D$      & Fine  	& $2.900\times 10^{-15}$	& Linear \\
+    $3D$      & Coarse  & $3.071\times 10^{-17}$	& Linear \\
+    $3D$      & Medium  & $2.125\times 10^{-17}$	& Linear \\
+		$3D$			&	Fine 		&	$2.924\times 10^{-17}$	& Linear \\
+    $2D$      & Coarse 	& $9.728\times 10^{-16}$	& Quadratic \\
+    $2D$      & Medium  & $2.039\times 10^{-15}$	& Quadratic \\
+    $2D$      & Fine  	& $2.159\times 10^{-15}$	& Quadratic \\
+    $3D$      & Coarse  & $6.687\times 10^{-16}$	& Quadratic \\
+    $3D$      & Medium  & \ldots									& Quadratic \\
+		$3D$			&	Fine 		&	\ldots									& Quadratic \\		
     \end{tabular}
 		\caption{Quantiative error between Abaqus 2017 and iron simulations for linear elastic uniaxial extenions}
 		\label{tab:example-0101-valid-Iron-Abaqus}
