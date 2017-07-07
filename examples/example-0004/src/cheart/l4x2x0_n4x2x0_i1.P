@@ -1,0 +1,33 @@
+!SetOutputPath{../../results/reference/cheart/l4x2x0_n4x2x0_i1/}
+
+!DefExpression{analyticalSolution}
+    2.0*exp(SpaceVariable.1)*cos(SpaceVariable.2)
+
+!DefSolverGroup={SolverGroup    |   null                |   SolverMatrix}
+!DefSolverSubGroup={SolverGroup |   SOLVER_SEQUENTIAL   |   SolverMatrix}
+!DefSolverMatrix={SolverMatrix  |   SOLVER_MUMPS        |   LaplaceEquation}
+
+!UseBasis={LinearBasis          |   QUADRILATERAL_ELEMENT               |   NODAL_LAGRANGE1  |   GAUSS_LEGENDRE2}
+!DefTopology={LinearTopology    |   meshes/domain_l4x2x0_n4x2x0_i1      |   LinearBasis}
+
+!DefVariablePointer={ScalarVariable |   LinearTopology  |                                           1}
+!DefVariablePointer={SpaceVariable  |   LinearTopology  |   meshes/domain_l4x2x0_n4x2x0_i1      |   2}
+!DefVariablePointer={Coefficient    |   LinearTopology  |   meshes/coefficient_l4x2x0_n4x2x0_i1 |   4}
+
+!SetExportFrequency={ScalarVariable |   SpaceVariable   |   1}
+
+!DefProblem={LaplaceEquation    |   GENERAL_STATIC_TRANSPORT}
+  !UseVariablePointer={Space                |   SpaceVariable}
+  !UseVariablePointer={Concentration        |   ScalarVariable}
+  !UseVariablePointer={DiffusionCoefficient |   Coefficient}
+  !SetProblemMatrixCalculation={EVALUATE_ONCE}
+  !Patch-labels={4}
+    LeftSurface     PATCH   1
+    RightSurface    PATCH   2
+    FrontSurface    PATCH   3
+    BackSurface     PATCH   4
+  !Boundary-patch-definitions
+    LeftSurface     ScalarVariable  Dirichlet   analyticalSolution
+    RightSurface    ScalarVariable  Dirichlet   analyticalSolution
+    FrontSurface    ScalarVariable  Dirichlet   analyticalSolution
+    BackSurface     ScalarVariable  Dirichlet   analyticalSolution

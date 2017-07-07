@@ -29,6 +29,42 @@ please indicate what you are working on or if a given example was finished
     \caption{Initials of people working on examples, in alphabetical order (surnames).}
     \label{initials-tab}
 \end{table}
+
+\section{Until Friday}
+%
+\begin{itemize}
+     \item{Finish open examples}
+     \item{Set a \texttt{TAG} for each example in document title:}
+     \subitem{\texttt{DOCUMENTED}: finish the documentation of the example (spatial domain, number of time steps, boundary conditions, etc.}
+     \subitem{\texttt{COMPILES}: example compiles (for default parameters)}
+     \subitem{\texttt{RUNS}: example runs (for default parameters)}
+     \subitem{\texttt{CONVERGES}: no convergence issues (for default parameters, results not plausible)}
+     \subitem{\texttt{PLAUSIBLE}: results look sensible (for default parameters)}
+     \subitem{\texttt{VALIDATED}: for all parameter sets it gives the correct results as compared to CHeart/Abaqus/analytical solution (includes visualisation scripts, run scripts, comparison scripts, documentation!, \ldots)} 
+		\subitem Move progress Google-document into PDF-document
+		\subitem Make from top directory - ensure all \texttt{run\_example.sh} scripts are working as intended
+\end{itemize}
+
+\section{Immediately after Friday}
+
+\begin{itemize}
+	\item Move tags \texttt{CONVERGE, PLAUSIBLE} to \texttt{VALIDATED}
+	\item Add GitHub issue for all tests/tags; \texttt{VALIDATED} means issue closed, else issue open
+	\item Everybody runs everything!
+	\item Meeting with Oliver
+	\item Meeting with Auckland
+\end{itemize}
+	
+\section{Long-term}
+\begin{itemize}
+	\item \texttt{SMALL/BIG/PARALLEL} targets
+	\item Add more examples/those which were on the agenda but not started
+	\item Jenkins
+	\subitem test \texttt{SMALL/BIG/PARALLEL} targets
+	\subitem integrate with GitHub (pull-requests triggers Jenkins, merge on success)
+\end{itemize}
+
+
 %
 %\clearpage
 %%
