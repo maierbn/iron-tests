@@ -25,9 +25,9 @@ mkdir -p results/current_run/l160x120x000_n16x12x00_i2_s0 && ./$folder/src/examp
 mkdir -p results/current_run/l160x120x000_n32x24x00_i2_s0 && ./$folder/src/example 160 120 0 32 24 0 2 0 10000 0.3 60000
 # 3D Tests
 echo "    3D tests"
-mkdir -p results/current_run/l160x120x120_n08x06x06_i1_s0 && ./$folder/src/example 160 120 120 8 6 6 1 0 10000 0.3 720000
-mkdir -p results/current_run/l160x120x120_n16x12x12_i1_s0 && ./$folder/src/example 160 120 120 16 12 12 1 0 10000 0.3 720000
-mkdir -p results/current_run/l160x120x120_n32x24x24_i1_s0 && ./$folder/src/example 160 120 120 32 24 24 1 0 10000 0.3 720000
+mkdir -p results/current_run/l160x120x120_n08x06x06_i1_s0 && ./$folder/src/example 160 120 120 8 6 6 1 0 10000 0.3 7200000
+mkdir -p results/current_run/l160x120x120_n16x12x12_i1_s0 && ./$folder/src/example 160 120 120 16 12 12 1 0 10000 0.3 7200000
+mkdir -p results/current_run/l160x120x120_n32x24x24_i1_s0 && ./$folder/src/example 160 120 120 32 24 24 1 0 10000 0.3 7200000
 #
 # Write out x-displacements into a Text-File (-> Gives a list as ASCII-File [1,last_node])
 #
