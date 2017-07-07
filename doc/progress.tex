@@ -1,99 +1,91 @@
 %===============================================================================
 %
-\section{How to work on this document}
+\clearpage
 %
-In the Google Doc at
-\url{https://docs.google.com/spreadsheets/d/1RGKj8vVPqQ-PH0UwMX_e9TAzqaYavKiOzOD4pKY9RGI/edit#gid=0}
-please indicate what you are working on or if a given example was finished
+\section{Progress}
 %
-\begin{itemize}
-    \item{no mark: to be done}
-    \item{x: currently working on it}
-    \item{xx: done}
-\end{itemize}
-%
-\begin{table}[h!]
-    \centering
-    \begin{tabular}{ c | c }
-        Initials & Full name \\
-        \midrule
-        CB       & Christian Bleiler \\
-        AH       & Andreas Hessenthaler \\
-        TK       & Thomas Klotz \\
-        AK       & Aaron Kr\"amer \\
-        BM       & Benjamin Maier \\
-        SM       & Sergio Morales \\
-        MM       & Mylena Mordhorst \\
-        HS       & Harry Saini \\
-    \end{tabular}
-    \caption{Initials of people working on examples, in alphabetical order (surnames).}
-    \label{initials-tab}
-\end{table}
-
-\section{Until Friday}
+People working on setting up tests in alphabetical order (surnames) with initials:
 %
 \begin{itemize}
-     \item{Finish open examples}
-     \item{Set a \texttt{TAG} for each example in document title:}
-     \subitem{\texttt{DOCUMENTED}: finish the documentation of the example (spatial domain, number of time steps, boundary conditions, etc.}
-     \subitem{\texttt{COMPILES}: example compiles (for default parameters)}
-     \subitem{\texttt{RUNS}: example runs (for default parameters)}
-     \subitem{\texttt{CONVERGES}: no convergence issues (for default parameters, results not plausible)}
-     \subitem{\texttt{PLAUSIBLE}: results look sensible (for default parameters)}
-     \subitem{\texttt{VALIDATED}: for all parameter sets it gives the correct results as compared to CHeart/Abaqus/analytical solution (includes visualisation scripts, run scripts, comparison scripts, documentation!, \ldots)} 
-		\subitem Move progress Google-document into PDF-document
-		\subitem Make from top directory - ensure all \texttt{run\_example.sh} scripts are working as intended
+    \item CB : Christian Bleiler
+    \item  NE : Dr.-Ing.\ Nehzat Emamy
+    \item  AH : Andreas Hessenthaler
+    \item  TK : Thomas Klotz
+    \item  AK : Aaron Kr\"amer
+    \item  BM : Benjamin Maier
+    \item  SM : Sergio Morales
+    \item  MM : Mylena Mordhorst
+    \item  HS : Harry Saini
 \end{itemize}
-
-\section{Immediately after Friday}
-
-\begin{itemize}
-	\item Move tags \texttt{CONVERGE, PLAUSIBLE} to \texttt{VALIDATED}
-	\item Add GitHub issue for all tests/tags; \texttt{VALIDATED} means issue closed, else issue open
-	\item Everybody runs everything!
-	\item Meeting with Oliver
-	\item Meeting with Auckland
-\end{itemize}
-	
-\section{Long-term}
-\begin{itemize}
-	\item \texttt{SMALL/BIG/PARALLEL} targets
-	\item Add more examples/those which were on the agenda but not started
-	\item Jenkins
-	\subitem test \texttt{SMALL/BIG/PARALLEL} targets
-	\subitem integrate with GitHub (pull-requests triggers Jenkins, merge on success)
-\end{itemize}
-
-
 %
-%\clearpage
-%%
-%\begin{sidewaystable}[h!]
-%    \centering
-%    \begin{tabular}{ c | c | c | c | c | c | c | c | c }
-%        Progress & Initials & Name of example & Dimensions & Equation & Boundary conditions & Mesh type & Interpolation order & Time dependence \\
-%        \midrule
-%        xx       & AH       & Example-0001 & 2D, 3D & Laplace    & Dirichlet & generated & linear, quadratic & static \\
-%                 &          & Example-0002 &        &            &           &           &        &        \\
-%                 &          & \ldots \\
-%    \end{tabular}
-%    \caption{Example-0001 to example-0099. Who is doing what? What is finished? See Table~\ref{initials-tab}.}
-%    \label{progress-x0xx-tab}
-%\end{sidewaystable}
-%%
-%\clearpage
-%%
-%\begin{sidewaystable}[h!]
-%    \centering
-%    \begin{tabular}{ c | c | c | c | c | c | c | c | c }
-%        Progress & Initials & Name of example & Dimensions & Equation & Boundary conditions & Mesh type & Interpolation order & Time dependence \\
-%        \midrule
-%        x        & AH, HS   & Example-0101 & 2D & Linear elasticity & Dirichlet & generated & linear & quasi-static \\
-%                 &          & Example-0102 &    &                   &           &           &        &              \\
-%                 &          & \ldots \\
-%    \end{tabular}
-%    \caption{Example-0101 to example-0199. Who is doing what? What is finished? See Table~\ref{initials-tab}.}
-%    \label{progress-x1xx-tab}
-%\end{sidewaystable}
+\subsection{Equations to test}
+%
+Test single-physics problems before multi-physics problems!
+%
+\begin{itemize}
+    \item Diffusion equation (Laplace, Poisson, Generalized Laplace, ALE Diffusion, etc.)
+    \item Linear elasticity equation (compressible and incompressible)
+    \item Finite elasticity equation (compressible and incompressible Mooney-Rivlin, etc.)
+    \item Navier-Stokes equation (ALE, Stokes, etc.)
+    \item Monodomain equation
+    \item CellML models
+    \item Skeletal muscle models
+    \item Fluid-structure interaction
+    \item etc.
+\end{itemize}
+%
+\subsection{Setting up a new test}
+%
+Use the following guideline to set up a new test:
+%
+\begin{enumerate}
+    \item Check if it is already there
+    \item Talk to other developers
+    \item Create a new subfolder examples/example-0xxx
+    \item Document the setup (computational domain, etc.) in examples/example-0xxx/doc/example.tex
+    \item Set up example with all parameters as command line arguments, see Section~\ref{variations-sec}
+    \item Set up reference results (CHeart, Abaqus, analytical solution, etc.)
+    \item Set up script to run all tests in your example directory
+    \item Set up script to perform comparison between iron results and reference results
+    \item Set up visualization scripts
+    \item Compile, run, test, visualize your example
+    \item Compile, run, test, visualize all examples
+\end{enumerate}
+%
+For each example, progress is documented in the respective section titles
+with the following \texttt{\color{red} TAG}:
+%
+\begin{itemize}
+    \item{\texttt{\color{red} DOCUMENTED}: finish the documentation of the example (spatial domain, number of time steps, boundary conditions, etc.}
+    \item{\texttt{\color{red} COMPILES}: example compiles (for default parameters)}
+    \item{\texttt{\color{red} RUNS}: example runs (for default parameters)}
+    \item{\texttt{\color{red} CONVERGES}: no convergence issues (for default parameters, results not plausible)}
+    \item{\texttt{\color{red} PLAUSIBLE}: results look sensible (for default parameters)}
+    \item{\texttt{\color{red} VALIDATED}: for all parameter sets it gives the correct results as compared to CHeart/Abaqus/analytical solution (includes visualization scripts, run scripts, comparison scripts, documentation!, \ldots)} 
+\end{itemize}
+%
+Move all tags \texttt{\color{red} CONVERGE, PLAUSIBLE} to
+\texttt{\color{red} VALIDATED}.\\
+
+\noindent Next steps include:
+%
+\begin{itemize}
+    \item Everybody runs everything!
+    \item Meeting with Oliver
+    \item Meeting with Auckland
+\end{itemize}
+%
+\subsection{Long-term goals}
+%
+\begin{itemize}
+    \item Different testing targets
+    \subitem \texttt{SMALL} : small, fast tests
+    \subitem \texttt{BIG} : same as before; further, bigger and more complex geometries, convergence analysis
+    \subitem \texttt{PARALLEL} : same as before but in parallel
+    \item Add more examples/those which were on the agenda but not started
+    \item Jenkins continuous testing, integration and deployment
+    \subitem test \texttt{SMALL/BIG/PARALLEL} targets
+    \subitem integrate with GitHub (pull-requests triggers Jenkins, merge on success)
+\end{itemize}
 %
 %===============================================================================
