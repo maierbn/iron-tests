@@ -21,7 +21,7 @@ Current issue: does not converge after 30 some time iterations.
 We solve the incompressible Navier-Stokes equation,
 %
 \begin{align}
-    \partial_{t} (\rho \boldsymbol{v}) + \nabla \cdot (\rho \boldsymbol{v} \otimes \boldsymbol{v} + p \boldsymbol{I}) = \rho \boldsymbol{f} & &&\Omega = [0, 1] \times [0, 1], \\
+    \partial_{t} (\rho \boldsymbol{v}) + \nabla \cdot (\rho \boldsymbol{v} \otimes \boldsymbol{v}) - \nabla \cdot (\mu \nabla \boldsymbol{v} - p \boldsymbol{I}) = \rho \boldsymbol{f} & &&\Omega = [0, 1] \times [0, 1], \\
     \nabla \cdot \boldsymbol{v} = 0,
 \end{align}
 %
@@ -34,7 +34,7 @@ with boundary conditions
     \boldsymbol{v} &= [1, 0]^T  &&y = 1.
 \end{align}
 %
-Density $\rho = 1$, viscosity $\mu = 0.0025$. Thus, Reynolds number $Re = 400$.
+Viscosity $\mu = 0.0025$, density $\rho = 1$. Thus, Reynolds number $Re = 400$.
 %
 %===============================================================================
 %
@@ -43,7 +43,7 @@ Density $\rho = 1$, viscosity $\mu = 0.0025$. Thus, Reynolds number $Re = 400$.
 We solve the incompressible Navier-Stokes equation,
 %
 \begin{align}
-    \partial_{t} (\rho \boldsymbol{v}) + \nabla \cdot (\rho \boldsymbol{v} \otimes \boldsymbol{v} + p \boldsymbol{I}) = \rho \boldsymbol{f} & &&\Omega = [0, 1] \times [0, 1] \times [0, 1], \\
+    \partial_{t} (\rho \boldsymbol{v}) + \nabla \cdot (\rho \boldsymbol{v} \otimes \boldsymbol{v}) - \nabla \cdot (\mu \nabla \boldsymbol{v} - p \boldsymbol{I}) = \rho \boldsymbol{f} & &&\Omega = [0, 1] \times [0, 1] \times [0, 1], \\
     \nabla \cdot \boldsymbol{v} = 0,
 \end{align}
 %
@@ -58,7 +58,7 @@ with boundary conditions
     \boldsymbol{v} &= 0         &&z = 1.
 \end{align}
 %
-Density $\rho = 1$, viscosity $\mu = 0.01$. Thus, Reynolds number $Re = 100$.
+Viscosity $\mu = 0.0025$, density $\rho = 1$. Thus, Reynolds number $Re = 100$.
 %
 %===============================================================================
 %

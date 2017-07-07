@@ -77,6 +77,7 @@ PROGRAM LidDrivenCavity
   INTEGER(CMISSIntg), PARAMETER :: NumberOfMeshComponents=2
   INTEGER(CMISSIntg), PARAMETER :: VelocityMeshComponent=1
   INTEGER(CMISSIntg), PARAMETER :: PressureMeshComponent=2
+  REAL(CMISSRP),      PARAMETER :: PI=4.0_CMISSRP*DATAN(1.0_CMISSRP)
 
   !Program types
   
@@ -169,15 +170,15 @@ PROGRAM LidDrivenCavity
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) TimeStepSize
     IF(TimeStepSize<=0.0_CMISSRP) CALL HANDLE_ERROR("Invalid time step size.")
     ! Material parameters for incompressible Newtonian fluid model
-    ! get Density, viscosity
+    ! get Viscosity, Density
     CALL GET_COMMAND_ARGUMENT(6,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 6.")
-    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) Density
-    IF(Density<0.0_CMISSRP) CALL HANDLE_ERROR("Invalid density.")
-    CALL GET_COMMAND_ARGUMENT(7,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
-    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 7.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) Viscosity
     IF(Viscosity<0.0_CMISSRP) CALL HANDLE_ERROR("Invalid viscosity.")
+    CALL GET_COMMAND_ARGUMENT(7,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 7.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) Density
+    IF(Density<0.0_CMISSRP) CALL HANDLE_ERROR("Invalid density.")
     ! get SolverType (direct, iterative)
     CALL GET_COMMAND_ARGUMENT(8,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 8.")
@@ -484,11 +485,8 @@ PROGRAM LidDrivenCavity
       CALL cmfe_Field_ParameterSetGetNode( &
         & GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,1, &
         & 1,1,NodeNumber,1,x,Err)
-      CALL cmfe_Field_ParameterSetGetNode( &
-        & GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,1, &
-        & 1,1,NodeNumber,2,y,Err)
       vy = 0.0_CMISSRP
-      vx = 1.0_CMISSRP
+      vx = 1.0_CMISSRP*DSIN(PI*x)
       CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
         & 1,CMFE_BOUNDARY_CONDITION_FIXED,vx,Err)
       CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
@@ -564,6 +562,7 @@ PROGRAM LidDrivenCavity
     CurrentPatchID=4
     CALL cmfe_ImportedMesh_SurfaceGet(BoundaryPatchesImport,CurrentPatchID,StartIdx,StopIdx,Err)
     ! Now, set boundary condition
+    ! Note: we are not modifying the BC here, just demonstrating how one would do it
     DO NodeIdx=StartIdx,StopIdx
       NodeNumber=BoundaryPatchesImport(NodeIdx)
       CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
@@ -575,9 +574,9 @@ PROGRAM LidDrivenCavity
           & GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,1, &
           & 1,1,NodeNumber,2,y,Err)
         IF(abs(x)<1.0e-6_CMISSRP) CYCLE
-        IF(abs(x)>=1.0_CMISSRP) CYCLE
+        IF(abs(x)>=1.0_CMISSRP-1.0e-6_CMISSRP) CYCLE
         vy = 0.0_CMISSRP
-        vx = 1.0_CMISSRP
+        vx = 1.0_CMISSRP*DSIN(PI*x)
         CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
           & 1,1,NodeNumber,1,vx,Err)
         CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &

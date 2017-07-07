@@ -1,18 +1,20 @@
 #Read in the sequence of nodal positions.
 gfx read node results/current_run/2D_MeshRefinementLevel_001/Example.part0.exnode time 0
-for $i (1..6)
-  {
-	 $filename = sprintf("results/current_run/2D_MeshRefinementLevel_001/Example_%d.part0.exnode", $i);
-	 
-	 print "Reading $filename time $i\n";
-	 gfx read node "$filename" time $i;
-  }
+for ($i = 99 ; $i < 1000 ; $i=$i+100)
+{
+    $filename = sprintf("results/current_run/2D_MeshRefinementLevel_001/Example_%d.part0.exnode", $i);
+    gfx read node "$filename" time $i;
+}
 
 #Read in the element description
 gfx read elements results/current_run/2D_MeshRefinementLevel_001/Example.part0.exelem;
 
 gfx define field Velocity composite VectorField.1 VectorField.2
 gfx define field VectorFieldMagnitude magnitude field Velocity
+
+gfx define field VelocityX component VectorField.1
+gfx define field VelocityY component VectorField.2
+gfx define field Pressure  component VectorField.3
 
 gfx define faces egroup Region
 gfx modify g_element Region lines coordinate Geometry select_on material default selected_material default_selected
