@@ -15,13 +15,12 @@ print "Numpy version: "+np.version.version
 print ""
 
 # tolerance used to check numerical solution
-tol_matlab = 12345678    # matlab solution differs from iron solution
+tol_matlab = 0.001    # matlab solution differs from iron solution
 tol_iron = 0.05
 
 # number of elements in each coordinate direction for different refinement levels
-NumberOfElements = np.zeros((1,2), dtype=int)
-NumberOfElements[0][0] = 24
-NumberOfElements[0][1] = 24
+NumberOfElements = np.zeros((1,1), dtype=int)
+NumberOfElements[0][0] = 64
 
 NumberOfTests       = 0
 NumberOfFailedTests = 0
@@ -29,20 +28,18 @@ NumberOfFailedTests = 0
 failedtests_file = open("failed.tests", "w")
 
 # for problem types
-for [nx,i,s,p] in [[24,1,0,1], [24,1,1,1], [10,1,0,1], [24,1,0,2], [24,1,0,8], [2,1,0,2]]:
-#for [nx,i,s,p] in [[24,2,0,1]]:
+for [nx,i,s,p] in [[64,2,0,1]]:
   
   
   #print "case ",[nx,i,s,p]
-  ny = nx
-  for t in [0.01, 0.1, 0.2, 1, 2,3]:
+  for t in [0,0.05,0.1,2,3,5]:
     NumberOfTests += 1
-    #print "t=",t
+    print "t=",t
     
     ####################################################################
     # read reference data
     # read matlab reference data
-    foldername  = "reference/matlab/l1x1_n"+str(nx)+"x"+str(ny)+"_i"+str(i)+"_s0/"
+    foldername  = "reference/matlab/l1x1_n"+str(nx)+"_i"+str(i)+"_s0_05/"
     matlab_filename = "vm_"+str(t)+".csv"
     
     status = "   matlab file: {}\n".format(foldername+matlab_filename)
@@ -52,9 +49,10 @@ for [nx,i,s,p] in [[24,1,0,1], [24,1,1,1], [10,1,0,1], [24,1,0,2], [24,1,0,8], [
       matlab_data = np.loadtxt(foldername+matlab_filename)
     
     # read iron reference data
-    foldername  = "reference/iron/l1x1_n"+str(nx)+"x"+str(ny)+"_i"+str(i)+"_s"+str(s)+"/"
-    pde_time_step = 0.005
+    foldername  = "reference/iron/l1x1_n"+str(nx)+"_i"+str(i)+"_s0_05/"
+    pde_time_step = 0.05
     filenumber = int(t / pde_time_step)
+    print "filenumber: ", filenumber
     
     iron_reference_filename = "Time_2_"+str(filenumber)+".part0.exnode"
     
@@ -63,13 +61,19 @@ for [nx,i,s,p] in [[24,1,0,1], [24,1,1,1], [10,1,0,1], [24,1,0,2], [24,1,0,8], [
     iron_reference_data = exnode_reader.parse_file(foldername+iron_reference_filename, [["Vm", 1]])   # extract field Vm, component 1
     
     # read iron data of current run
-    foldername  = "current_run/l1x1_n"+str(nx)+"x"+str(ny)+"_i"+str(i)+"_s"+str(s)+"_p"+str(p)+"/"            
-    pde_time_step = 0.005
+    foldername  = "current_run/l1x1_n"+str(nx)+"_i"+str(i)+"_s0_05/"      
+    pde_time_step = 0.05
     filenumber = int(t / pde_time_step)
     
     iron_filename = "Time_2_"+str(filenumber)+".part0.exnode"
     status += "   iron file: {}\n".format(foldername+iron_filename)
     iron_data = exnode_reader.parse_file(foldername+iron_filename, [["Vm", 1]])   # extract field Vm, component 1
+    
+    if iron_data is not None:
+      #print "size of initial iron_data:",len(iron_data)
+      #print "iron_data",iron_data
+      iron_data = iron_data[0:len(iron_data):2]
+      #print "iron_data 2",iron_data
     
     if iron_data is None:
       print "Warning! no current iron data available for:\n"+status
@@ -93,33 +97,30 @@ for [nx,i,s,p] in [[24,1,0,1], [24,1,1,1], [10,1,0,1], [24,1,0,2], [24,1,0,8], [
       print "t="+str(t)+", matlab:",matlab_filename,", best fit for iron: ",min_filename,", l2: ",min_l2diff
     
     # plot values
-    if False:
+    if True:
       X = range(nx+1)
-      Y = range(ny+1)
-      X, Y = np.meshgrid(X, Y)
-      Z_matlab = X.copy()
-      Z_iron = X.copy()
-      Z_diff = X.copy()
+      Z_matlab = range(nx+1)
+      Z_iron = range(nx+1)
+      Z_diff = range(nx+1)
       for x in range(nx+1):
-        for y in range(ny+1):
-          Z_matlab[x,y] = matlab_data[x*(ny+1)+y]
-          Z_iron[x,y] = iron_data[x*(ny+1)+y]
-          Z_diff[x,y] = Z_matlab[x,y] - Z_iron[x,y]
+        Z_matlab[x] = matlab_data[x]
+        Z_iron[x] = iron_data[x]
+        Z_diff[x] = Z_matlab[x] - Z_iron[x]
       
       print "max:",np.amax(Z_matlab)
       
       fig = plt.figure(figsize=(18,8))
-      plt.title("t="+str(t))
-      ax = fig.add_subplot(131, projection='3d')
-      ax.plot_surface(X, Y, Z_matlab, cmap=cm.coolwarm, linewidth=1, antialiased=False, rstride=1, cstride=1)
+      #plt.title("                                                         t="+str(t))
+      ax = fig.add_subplot(131)
+      ax.plot(X, Z_matlab)
       plt.title("matlab file "+str(matlab_filename)+" max:"+str(np.amax(Z_matlab)))
       
-      ax = fig.add_subplot(132, projection='3d')
-      ax.plot_surface(X, Y, Z_iron, cmap=cm.coolwarm, linewidth=1, antialiased=False, rstride=1, cstride=1)
+      ax = fig.add_subplot(132)
+      ax.plot(X, Z_iron)
       plt.title("iron file "+str(iron_filename)+" max:"+str(np.amax(Z_iron)))
       
-      ax = fig.add_subplot(133, projection='3d')
-      ax.plot_surface(X, Y, Z_diff, cmap=cm.coolwarm, linewidth=1, antialiased=False, rstride=1, cstride=1)
+      ax = fig.add_subplot(133)
+      ax.plot(X, Z_diff)
       plt.title("matlab - iron")
       
       plt.tight_layout()
@@ -130,6 +131,10 @@ for [nx,i,s,p] in [[24,1,0,1], [24,1,1,1], [10,1,0,1], [24,1,0,2], [24,1,0,8], [
     
     # matlab reference - iron
     if matlab_data is not None:
+      
+      print "size of iron_data:",len(iron_data)
+      print "size of matlab_data:",len(matlab_data)
+      
       l2diff_matlab_iron = np.linalg.norm(matlab_data-iron_data) / np.linalg.norm(matlab_data)
       
       if l2diff_matlab_iron > tol_matlab:
