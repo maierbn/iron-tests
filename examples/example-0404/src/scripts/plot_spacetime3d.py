@@ -22,24 +22,24 @@ imagename="{}".format(foldername)+"image.png"
 
 # get all exnode files (sorted) from the folder
 files = exnode_reader.get_exnode_files(foldername)
-print 'exnode files',files
+#print 'exnode files',files
 
 n_timestep=len(files)-1
-print "No. of time steps: ", n_timestep
+#print "No. of time steps: ", n_timestep
 
 #get the number of data in each file
 x=exnode_reader.parse_file(foldername+files[0],[["Coordinate",1]]) #field_name and component_no
 n_data=len(x)
-print "No. of data point: ",n_data
+#print "No. of data point: ",n_data
 #print x 
 
 # get the data
 Vm=[0.0 for i in range(n_timestep)]
 for i_time in range (n_timestep):
     Vm[i_time]=exnode_reader.parse_file(foldername+files[i_time+1],[["Vm",1]])
-    print "time step: ", i_time
+    #print "time step: ", i_time
     #print Vm[i_time]  
-print "Vm: ",Vm
+#print "Vm: ",Vm
 
 def makeplot(x,y,z):
 
@@ -65,7 +65,14 @@ def makeplot(x,y,z):
     plt.savefig(imagename)
     print "Figure saved to {}".format(imagename)
 
-time_step=0.05
+#print foldername
+j_e=len(foldername)-1
+for j in range(j_e):
+    if foldername[j]=='s':
+       j_s=j+3
+
+time_step=float("0."+foldername[j_s:j_e])
+print "time_step",time_step
 time=np.arange(n_timestep)*time_step
 makeplot(time,x,Vm)
 
