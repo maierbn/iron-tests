@@ -17,7 +17,7 @@ if len(sys.argv) >1:
    gridsize=sys.argv[1]
    time=float(sys.argv[2])
 else:
-   gridsize=64
+   gridsize=512
    time=5.0
 
 print "grid size: ", gridsize
@@ -38,14 +38,16 @@ def get_timestep(foldername):
   #print "timestep",timestep
   return timestep
 
-# get the data respective to "time" from subfolders of the current_run folder 
+# get the data for the time convergence study from the current_run folder 
 def get_data_TimeConv(time):
 
   global folder
+   
   ls = os.listdir(folder)
-  subfolders=sorted(ls)
-  
- # print "subfolders:", subfolders
+  condition_folder= lambda name: "l1x1" in name and gridsize in name
+  ls_selected=list(np.extract(map(condition_folder,ls),ls))
+  subfolders=sorted(ls_selected)
+  #print "subfolders:", subfolders
   num_runs=len(subfolders)
   print "No. of runs: ", num_runs
   
@@ -67,7 +69,7 @@ def get_data_TimeConv(time):
 
     Vm[i]=exnode_reader.parse_file(fileToread,[["Vm",1]])
     #print Vm[i]
-  print "timesteps", timesteps
+  print "timesteps: ", timesteps
   return x,Vm,timesteps
 
 x,Vm,timesteps=get_data_TimeConv(time)
@@ -75,7 +77,7 @@ x,Vm,timesteps=get_data_TimeConv(time)
 def makeplot_TimeConv(x,y,labels):
 
    global folder
-   imagename="{}".format("../../results/image-Time-Conv-n"+str(gridsize)+"-t"+str(time)+".png")
+   imagename="{}".format(folder+"image-Time-Conv-n"+str(gridsize)+"-t"+str(time)+".png")
         
    fig=plt.figure(1)
    for i in range(len(y)):
@@ -83,10 +85,9 @@ def makeplot_TimeConv(x,y,labels):
    plt.title("Vm")
    plt.legend()
    plt.show()    
-   plt.savefig(imagename)
+   fig.savefig(imagename)
    print "Figure saved to {}".format(imagename)
 
-print str(timesteps) 
 makeplot_TimeConv(x,Vm,timesteps)
 
 # The smallest time step is considered as the reference
@@ -105,17 +106,17 @@ def find_err_L2_rel(Vm):
 def makeplot_TimeConv_err(x,y,labels):
 
   global folder
-  imagename="{}".format("../../results/errL2-Time-Conv-n"+str(gridsize)+"-t"+str(time)+".png")     
+  imagename="{}".format(folder+"errL2-Time-Conv-n"+str(gridsize)+"-t"+str(time)+".png")     
   fig=plt.figure(1)
 
   for i in range(len(y)):
     plt.loglog(x,y[i],'ro',label=labels[i])
     slope, intercept, r_value, p_value, std_err = stats.linregress(np.log10(x),np.log10(y))
-    print i, slope
+    print "i, slope: ", i,slope
   plt.title("Vm")
   plt.legend()
   plt.show()    
-  plt.savefig(imagename)
+  fig.savefig(imagename)
   print "Figure saved to {}".format(imagename)
 
 err_L2=[0.0 for i in range(1)]

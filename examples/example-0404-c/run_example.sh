@@ -15,9 +15,10 @@ cd ..
 echo "  running $folder"
 # <number elements X> <interpolation type> <solver type> <PDE step size> <stop time> <output frequency> <CellML Model URL> <slow-twitch> <ODE time-step>
 
-#mkdir -p results/current_run/l1x1_n16_i1_s0_05 && ./$folder/src/example 16 1 0 0.05 0.3 1 hodgkin_huxley_1952.cellml F 0.05 && mv *.ex* results/current_run/l1x1_n16_i1_s0_05
-mkdir -p results/current_run/l1x1_n128_i1_s0_05 && ./$folder/src/example 128 1 0 0.05 3 1 hodgkin_huxley_1952.cellml F 0.05 && mv *.ex* results/current_run/l1x1_n128_i1_s0_05
-#mkdir -p results/current_run/l1x1_n24_i2_s0_05 && ./$folder/src/example 24 2 0 0.005 0.3 1 hodgkin_huxley_1952.cellml F 0.001 && mv *.ex* results/current_run/l1x1_n24_i2_s0_05
-#mkdir -p results/current_run/l1x1_n48_i1_s0_05 && ./$folder/src/example 48 1 0 0.05 0.3 1 hodgkin_huxley_1952.cellml F 0.05 && mv *.ex* results/current_run/l1x1_n48_i1_s0_05
-#mkdir -p results/current_run/l1x1_n64_i1_s0_05 && ./$folder/src/example 64 1 0 0.05 0.3 1 hodgkin_huxley_1952.cellml F 0.05 && mv *.ex* results/current_run/l1x1_n64_i1_s0_05
+mkdir -p results/current_run/l1x1_n64_i2_s0_01 && ./$folder/src/example 64 2 0 0.01 10 5 hodgkin_huxley_1952.cellml F 0.01 && mv *.ex* results/current_run/l1x1_n64_i2_s0_01
+mkdir -p results/current_run/l1x1_n64_i2_s0_005 && ./$folder/src/example 64 2 0 0.005 10 10 hodgkin_huxley_1952.cellml F 0.005 && mv *.ex* results/current_run/l1x1_n64_i2_s0_005
+mkdir -p results/current_run/l1x1_n64_i2_s0_001 && ./$folder/src/example 64 2 0 0.001 10 50 hodgkin_huxley_1952.cellml F 0.001 && mv *.ex* results/current_run/l1x1_n64_i2_s0_001
+mkdir -p results/current_run/l1x1_n64_i2_s0_0005 && ./$folder/src/example 64 2 0 0.0005 10 100 hodgkin_huxley_1952.cellml F 0.0005 && mv *.ex* results/current_run/l1x1_n64_i2_s0_0005
+mkdir -p results/current_run/l1x1_n64_i2_s0_00025 && ./$folder/src/example 64 2 0 0.00025 10 200 hodgkin_huxley_1952.cellml F 0.00025 && mv *.ex* results/current_run/l1x1_n64_i2_s0_00025
+
 
