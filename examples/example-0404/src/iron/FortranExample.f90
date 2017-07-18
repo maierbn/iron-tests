@@ -240,8 +240,8 @@ PROGRAM MONODOMAINEXAMPLE
     ! BASIS_LINEAR_SIMPLEX_INTERPOLATION=7 !<Linear Simplex interpolation specification \see BASIS_ROUTINES_InterpolationSpecifications,BASIS_ROUTINES
     ! BASIS_QUADRATIC_SIMPLEX_INTERPOLATION=8 !<Quadratic Simplex interpolation specification \see BASIS_ROUTINES_InterpolationSpecifications,BASIS_ROUTINES
     ! BASIS_CUBIC_SIMPLEX_INTERPOLATION=9 !<Cubic Simplex interpolation specification \see BASIS_ROUTINES_InterpolationSpecifications,BASIS_ROUTINES
-    PDE_TIME_STEP = 0.05_CMISSRP
-    ODE_TIME_STEP = 0.05_CMISSRP
+    PDE_TIME_STEP = 0.01_CMISSRP
+    ODE_TIME_STEP = 0.01_CMISSRP
     TIME_STOP=5.00
     OUTPUT_FREQUENCY=1
     CellmlFile="hodgkin_huxley_1952.cellml"
