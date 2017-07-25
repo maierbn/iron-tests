@@ -1,0 +1,66 @@
+
+#timestep=1  1000  0.001
+
+#FluidElement=TETRAHEDRAL_ELEMENT
+
+#FluidPressure=NODAL_LAGRANGE1
+#FluidVelocity=NODAL_LAGRANGE2
+
+#FluidPressureTopology=meshes/3D_MeshRefinementLevel_001/domain_lin
+#FluidVelocityTopology=meshes/3D_MeshRefinementLevel_001/domain_quad
+
+#FluidDensity=1.0
+#FluidViscosity=0.01
+
+#patch_x0=1
+#patch_x1=2
+#patch_y0=3
+#patch_y1=4
+#patch_z0=5
+#patch_z1=6
+
+!SetOutputPath{../../results/reference/cheart/3D_MeshRefinementLevel_001/}
+
+!DefSolverGroup={FLOW|time|FluidMatrix}
+  !DefSolverSubGroup={FLOW|seq_fp_linesearch|FluidMatrix|ScaleFirstResidual[100]}
+  !SetSolverGroup={FLOW|SUBITERATION|4}
+  !SetSolverGroup={FLOW|L2TOL|1e-6}
+
+!DefSolverMatrix={FluidMatrix|SOLVER_MUMPS|Fluid}
+  !SetSolverMatrix={FluidMatrix|Ordering|serial}
+  !SetSolverMatrix={FluidMatrix|MemoryBuffer|200}
+
+!DefTimeStepScheme={time}
+  #timestep
+
+!UseBasis={FPresBasis |#FluidElement|#FluidPressure|KEAST_LYNESS6}
+!UseBasis={FVelBasis  |#FluidElement|#FluidVelocity|KEAST_LYNESS6}
+
+!DefTopology={FluidPresTP|#FluidPressureTopology|FPresBasis}
+!DefTopology={FluidVelTP |#FluidVelocityTopology|FVelBasis}
+
+!DefInterface={OneToOne|FluidVelTP|FluidPresTP}
+
+!DefVariablePointer={FluidPres  |FluidPresTP|1}
+!DefVariablePointer={Vel        |FluidVelTP |3}
+!DefVariablePointer={FluidSpace |FluidVelTP |#FluidVelocityTopology|3}
+
+!SetExportFrequency={FluidSpace|100}
+!SetExportFrequency={Vel       |100}
+!SetExportFrequency={FluidPres |100}
+
+!DefProblem={Fluid|TRANSIENT_NAVIER_STOKES_FLOW}
+  !UseVariablePointer={Space|FluidSpace}
+  !UseVariablePointer={Velocity|Vel}
+  !UseVariablePointer={Pressure|FluidPres}
+  !Density={#FluidDensity}
+  !Viscosity={#FluidViscosity}
+  !SetRootTopology={FluidVelTP}
+  !SetProblemMatrixCalculation={EVALUATE_EVERY_BUILD}
+  !Patch-labels={2}
+    FluidInlet  PATCH  #patch_y1
+    FluidWall   PATCH  #patch_x0 #patch_x1 #patch_y0 #patch_z0 #patch_z1
+  !Boundary-patch-definitions
+    FluidInlet  Vel         Dirichlet   1 0 0
+    FluidWall   Vel         Dirichlet   0 0 0
+

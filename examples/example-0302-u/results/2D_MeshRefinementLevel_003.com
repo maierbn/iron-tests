@@ -1,6 +1,6 @@
 #Read in the sequence of nodal positions.
 gfx read node results/current_run/2D_MeshRefinementLevel_003/Example.part0.exnode time 0
-for ($i = 99 ; $i < 1000 ; $i=$i+100)
+for ($i = 100 ; $i < 1001 ; $i=$i+100)
 {
     $filename = sprintf("results/current_run/2D_MeshRefinementLevel_003/Example_%d.part0.exnode", $i);
     gfx read node "$filename" time $i;

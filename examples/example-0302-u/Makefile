@@ -1,19 +1,24 @@
 default:
 	make clean
 	mkdir -p results/current_run
-	make debug; echo "debug"
-	make release; echo "release";
+	make release-fast
 	make compare
 	make create-figures
 
-debug:
-	bash run_example.sh debug
+debug-fast:
+	bash run_example.sh debug fast
 
-release:
-	bash run_example.sh release
+debug-big:
+	bash run_example.sh debug big
+
+release-fast:
+	bash run_example.sh release fast
+
+release-big:
+	bash run_example.sh release big
 
 compare:
-	cd results; echo "All tests failed." > failed.tests; echo "Passed tests: 0 / 3" > results.summary
+	cd results; echo "All tests failed." > failed.tests; echo "Passed tests: 0 / 12" > results.summary
 #	cd results; rm -f failed.tests results.summary; python compare_solutions.py
 
 create-figures:

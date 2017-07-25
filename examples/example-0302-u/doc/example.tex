@@ -10,9 +10,43 @@ quadratic/linear interpolation for velocity/pressure
 and solves a dynamic problem.
 
 Setup is the well-known lid-driven cavity problem
-on the unit square or unit cube in two and three dimensions.
+on the unit square or unit cube in two and three dimensions.\\[3ex]
 
-Current issue: does not converge after 30 some time iterations.
+Current issue: does not converge after 30 some time iterations (2D and 3D).\\[3ex]
+
+Visualization issue: In exelem-file, replace
+
+\begin{verbatim}
+   1.   constant(2)*constant, no modify, grid based.
+     #xi1=0, #xi2=0
+   2.   constant(2)*constant, no modify, grid based.
+\end{verbatim}
+
+with
+
+\begin{verbatim}
+   1.   constant*constant, no modify, grid based.
+     #xi1=0, #xi2=0
+   2.   constant*constant, no modify, grid based.
+\end{verbatim}
+
+and likewise for 3D, replace
+
+\begin{verbatim}
+   1.   constant(2;3)*constant*constant, no modify, grid based.
+     #xi1=0, #xi2=0, #xi3=0
+   2.   constant(2;3)*constant*constant, no modify, grid based.
+\end{verbatim}
+
+with
+
+\begin{verbatim}
+   1.   constant*constant*constant, no modify, grid based.
+     #xi1=0, #xi2=0, #xi3=0
+   2.   constant*constant*constant, no modify, grid based.
+\end{verbatim}
+
+
 %
 %===============================================================================
 %
@@ -58,7 +92,7 @@ with boundary conditions
     \boldsymbol{v} &= 0         &&z = 1.
 \end{align}
 %
-Viscosity $\mu = 0.0025$, density $\rho = 1$. Thus, Reynolds number $Re = 100$.
+Viscosity $\mu = 0.01$, density $\rho = 1$. Thus, Reynolds number $Re = 100$.
 %
 %===============================================================================
 %
@@ -75,7 +109,18 @@ Viscosity $\mu = 0.0025$, density $\rho = 1$. Thus, Reynolds number $Re = 100$.
         \subitem{float: viscosity}
         \subitem{integer: solver type (0: direct; 1: iterative)}
     \item{Commandline arguments for tests are:}
-        \subitem{2 1 0.0 0.01 0.001 1.0 0.0025 0}
+        \subitem{2 1 0.0 1.0 0.001 0.0025 1.0 0}
+        \subitem{2 2 0.0 1.0 0.001 0.0025 1.0 0}
+        \subitem{2 3 0.0 1.0 0.001 0.0025 1.0 0}
+        \subitem{2 1 0.0 1.0 0.001 0.0025 1.0 1}
+        \subitem{2 2 0.0 1.0 0.001 0.0025 1.0 1}
+        \subitem{2 3 0.0 1.0 0.001 0.0025 1.0 1}
+        \subitem{3 1 0.0 1.0 0.001 0.01 1.0 0}
+        \subitem{3 2 0.0 1.0 0.001 0.01 1.0 0}
+        \subitem{3 3 0.0 1.0 0.001 0.01 1.0 0}
+        \subitem{3 1 0.0 1.0 0.001 0.01 1.0 1}
+        \subitem{3 2 0.0 1.0 0.001 0.01 1.0 1}
+        \subitem{3 3 0.0 1.0 0.001 0.01 1.0 1}
     \item{Note: Binary uses command line arguments to search for the relevant mesh files.}
 \end{itemize}
 %

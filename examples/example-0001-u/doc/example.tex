@@ -3,10 +3,14 @@
 %
 \clearpage
 %
-\subsection{Example-0001-u \texttt{[VALIDATED]}}
+\subsection{Example-0001-u \texttt{[PLAUSIBLE]}}
 %
 Example uses user-defined regular meshes in CHeart mesh format
-and solves a static problem, i.e., applies the boundary conditions in one step.
+and solves a static problem, i.e., applies the boundary conditions in one step.\\[3ex]
+
+Issues: Interpolation type 8 (quadratic simplex) gives significantly different
+results compared to CHeart whereas all other simplex mesh results correspond
+rather well..
 %
 %===============================================================================
 %
@@ -67,24 +71,32 @@ No material parameters to specify.
         \subitem{2.0 1.0 0.0 2 1 0 2 0}
         \subitem{2.0 1.0 0.0 4 2 0 2 0}
         \subitem{2.0 1.0 0.0 8 4 0 2 0}
+        \subitem{2.0 1.0 0.0 8 4 0 7 0}% linear simplex
+        \subitem{2.0 1.0 0.0 8 4 0 8 0}% quadratic simplex
         \subitem{2.0 1.0 0.0 2 1 0 1 1}
         \subitem{2.0 1.0 0.0 4 2 0 1 1}
         \subitem{2.0 1.0 0.0 8 4 0 1 1}
         \subitem{2.0 1.0 0.0 2 1 0 2 1}
         \subitem{2.0 1.0 0.0 4 2 0 2 1}
         \subitem{2.0 1.0 0.0 8 4 0 2 1}
+        \subitem{2.0 1.0 0.0 8 4 0 7 1}% linear simplex
+        \subitem{2.0 1.0 0.0 8 4 0 8 1}% quadratic simplex
         \subitem{2.0 1.0 1.0 2 1 1 1 0}
         \subitem{2.0 1.0 1.0 4 2 2 1 0}
         \subitem{2.0 1.0 1.0 8 4 4 1 0}
         \subitem{2.0 1.0 1.0 2 1 1 2 0}
         \subitem{2.0 1.0 1.0 4 2 2 2 0}
         \subitem{2.0 1.0 1.0 8 4 4 2 0}
+        \subitem{2.0 1.0 1.0 8 4 4 7 0}% linear simplex
+        \subitem{2.0 1.0 1.0 8 4 4 8 0}% quadratic simplex
         \subitem{2.0 1.0 1.0 2 1 1 1 1}
         \subitem{2.0 1.0 1.0 4 2 2 1 1}
         \subitem{2.0 1.0 1.0 8 4 4 1 1}
         \subitem{2.0 1.0 1.0 2 1 1 2 1}
         \subitem{2.0 1.0 1.0 4 2 2 2 1}
         \subitem{2.0 1.0 1.0 8 4 4 2 1}
+        \subitem{2.0 1.0 1.0 8 4 4 7 1}% linear simplex
+        \subitem{2.0 1.0 1.0 8 4 4 8 1}% quadratic simplex
     \item{Note: Binary uses command line arguments to search for the relevant mesh files.}
 \end{itemize}
 %

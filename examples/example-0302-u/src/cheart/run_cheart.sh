@@ -4,5 +4,9 @@
 cheartsolver.out 2D_MeshRefinementLevel_001.P
 cheartsolver.out 2D_MeshRefinementLevel_002.P
 cheartsolver.out 2D_MeshRefinementLevel_003.P
+# run 3D
+cheartsolver.out 3D_MeshRefinementLevel_001.P
+cheartsolver.out 3D_MeshRefinementLevel_002.P
+cheartsolver.out 3D_MeshRefinementLevel_003.P
 
 rm -f gmon.out
