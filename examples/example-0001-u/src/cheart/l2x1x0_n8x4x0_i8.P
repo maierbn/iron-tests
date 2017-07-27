@@ -1,0 +1,26 @@
+!SetOutputPath{../../results/reference/cheart/l2x1x0_n8x4x0_i8/}
+
+!DefSolverGroup={SolverGroup    |   null                |   SolverMatrix}
+!DefSolverSubGroup={SolverGroup |   SOLVER_SEQUENTIAL   |   SolverMatrix}
+!DefSolverMatrix={SolverMatrix  |   SOLVER_MUMPS        |   LaplaceEquation}
+
+!UseBasis={QuadraticBasis       |   TRIANGLE_ELEMENT                |   NODAL_LAGRANGE2  |   KL6}
+!DefTopology={QuadraticTopology |   meshes/domain_l2x1x0_n8x4x0_i8  |   QuadraticBasis}
+
+!DefVariablePointer={ScalarVariable |   QuadraticTopology   |                                           1}
+!DefVariablePointer={SpaceVariable  |   QuadraticTopology   |   meshes/domain_l2x1x0_n8x4x0_i8      |   2}
+!DefVariablePointer={Coefficient    |   QuadraticTopology   |   meshes/coefficient_l2x1x0_n8x4x0_i8 |   4}
+
+!SetExportFrequency={ScalarVariable |   SpaceVariable   |   1}
+
+!DefProblem={LaplaceEquation    |   GENERAL_STATIC_TRANSPORT}
+  !UseVariablePointer={Space                |   SpaceVariable}
+  !UseVariablePointer={Concentration        |   ScalarVariable}
+  !UseVariablePointer={DiffusionCoefficient |   Coefficient}
+  !SetProblemMatrixCalculation={EVALUATE_ONCE}
+  !Patch-labels={2}
+    FirstNode   NODE    meshes/firstnode_l2x1x0_n8x4x0_i8.nodes
+    LastNode    NODE    meshes/lastnode_l2x1x0_n8x4x0_i8.nodes
+  !Boundary-patch-definitions
+    FirstNode   ScalarVariable  Dirichlet   0
+    LastNode    ScalarVariable  Dirichlet   1

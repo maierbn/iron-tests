@@ -41,9 +41,12 @@ gfx create spectrum displacement_spectrum
 
 ######## Creating surface ########
 
-gfx modify g_element "/" surfaces coordinate Deformed tessellation default LOCAL select_on material black spectrum displacement_spectrum selected_material default_selected render_wireframe;
+#gfx modify g_element "/" surfaces coordinate Deformed tessellation default LOCAL select_on material black spectrum displacement_spectrum selected_material default_selected render_wireframe;
 
 gfx modify spectrum displacement_spectrum linear reverse range -2.0 2.0 extend_above extend_below rainbow colour_range 0 1 component 1
+
+######## Visulaize Elements #############
+gfx modify g_element "Region 1" lines coordinate Deformed select_on material black selected_material default_selected;
 
 ########creating nodes with labels########
 
@@ -51,7 +54,7 @@ gfx modify g_element "/" node_points subgroup "Region 1" coordinate Deformed LOC
 
 ######## Creating another surface to show undeformed GEOMETRY ########
 
-gfx modify g_element "/" surfaces coordinate Undeformed tessellation default LOCAL select_on material black data Displacement.1 spectrum displacement_spectrum selected_material default_selected render_shaded;
+gfx modify g_element "/" surfaces coordinate Deformed tessellation default LOCAL select_on material black data Displacement.1 spectrum displacement_spectrum selected_material default_selected render_shaded;
 
 ########displaying color bar on the visualization window. ##########
 

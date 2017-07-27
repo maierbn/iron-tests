@@ -40,9 +40,13 @@ failedtests_file = open("failed.tests", "w")
 # for all solver types
 for s in np.arange(0, 2, 1):
     # for all interpolation orders
-    for i in np.arange(1, 3, 1):
+    for i in [1, 2, 7, 8]:
         # for all spatial resolutions
-        for r in np.arange(0, NumberOfElements.shape[0], 1):
+        if (i > 2):
+            startLoopAt = 2
+        else:
+            startLoopAt = 0
+        for r in np.arange(startLoopAt, NumberOfElements.shape[0], 1):
             NumberOfTests += 1
             nx = NumberOfElements[r][0]
             ny = NumberOfElements[r][1]
@@ -182,9 +186,13 @@ NumberOfElements[2][2] = 4
 # for all solver types
 for s in np.arange(0, 2, 1):
     # for all interpolation orders
-    for i in np.arange(1, 3, 1):
+    for i in [1, 2, 7, 8]:
         # for all spatial resolutions
-        for r in np.arange(0, NumberOfElements.shape[0], 1):
+        if (i > 2):
+            startLoopAt = 2
+        else:
+            startLoopAt = 0
+        for r in np.arange(startLoopAt, NumberOfElements.shape[0], 1):
             NumberOfTests += 1
             nx = NumberOfElements[r][0]
             ny = NumberOfElements[r][1]

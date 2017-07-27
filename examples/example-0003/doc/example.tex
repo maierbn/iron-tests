@@ -6,7 +6,10 @@
 \subsection{Example-0003 \texttt{[COMPILES]}}
 %
 Example uses generated regular meshes and solves a static problem, i.e., applies
-the boundary conditions in one step.
+the boundary conditions in one step.\\[2ex]
+
+\noindent Issues: Not clear how to prescribe Neumann BC. Results seem weird.
+Reference results are set up.
 %
 %===============================================================================
 %
@@ -58,7 +61,7 @@ No material parameters to specify.
         \subitem{integer: number of elements in x-direction}
         \subitem{integer: number of elements in y-direction}
         \subitem{integer: number of elements in z-direction (set to zero for 2D)}
-        \subitem{interger: interpolation order (1: linear; 2: quadratic)}
+        \subitem{integer: interpolation order (1: linear; 2: quadratic)}
         \subitem{integer: solver type (0: direct; 1: iterative)}
     \item{Commandline arguments for tests are:}
         \subitem{2.0 1.0 0.0 2 1 0 1 0}

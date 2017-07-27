@@ -42,9 +42,12 @@ gfx create spectrum displacement_spectrum
 
 ######## Creating surface ########
 
-gfx modify g_element "/" surfaces coordinate Deformed tessellation default LOCAL select_on material black spectrum displacement_spectrum selected_material default_selected render_wireframe;
+#gfx modify g_element "/" surfaces coordinate Deformed tessellation default LOCAL select_on material black spectrum displacement_spectrum selected_material default_selected render_wireframe;
 
 gfx modify spectrum displacement_spectrum linear reverse range -2 2 extend_above extend_below rainbow colour_range 0 1 component 1
+
+######## Visulaize Elements #############
+gfx modify g_element "Region 1" lines coordinate Deformed select_on material black selected_material default_selected;
 
 ########creating nodes with labels########
 
@@ -52,7 +55,7 @@ gfx modify g_element "/" node_points subgroup "Region 1" coordinate Deformed LOC
 
 ######## Creating another surface to show undeformed GEOMETRY ########
 
-gfx modify g_element "/" surfaces coordinate Undeformed tessellation default LOCAL select_on material black data Displacement.1 spectrum displacement_spectrum selected_material default_selected render_shaded;
+gfx modify g_element "/" surfaces coordinate Deformed tessellation default LOCAL select_on material black data Displacement.1 spectrum displacement_spectrum selected_material default_selected render_shaded;
 
 ########displaying color bar on the visualization window. ##########
 
@@ -65,11 +68,17 @@ gfx modify window 1 image view_all
 
 gfx modify window 1 background colour 1 1 1
 
-gfx modify window 1 layout simple ortho_axes z -y eye_spacing 0.25 width 878 height 574
+#gfx modify window 1 layout simple ortho_axes z -y eye_spacing 0.25 width 878 height 574
 
-gfx modify window 1 view parallel eye_point 80 60 407.98 interest_point 80 60 0 up_vector -0 1 -0 view_angle 40 near_clipping_plane 4.0798 far_clipping_plane 1457.98 relative_viewport ndc_placement -1 1 2 2 viewport_coordinates 0 0 1 1;
+#gfx modify window 1 view parallel eye_point 80 60 407.98 interest_point 80 60 0 up_vector -0 1 -0 view_angle 40 near_clipping_plane 4.0798 far_clipping_plane 1457.98 relative_viewport ndc_placement -1 1 2 2 viewport_coordinates 0 0 1 1;
 
-gfx modify window 1 set transform_tool current_pane 1 std_view_angle 40 normal_lines no_antialias depth_of_field 0.0 fast_transparency blend_normal
+#gfx modify window 1 set transform_tool current_pane 1 std_view_angle 40 normal_lines no_antialias depth_of_field 0.0 fast_transparency blend_normal
+
+gfx modify window 1 layout simple ortho_axes z -y eye_spacing 0.25 width 1715 height 1030;
+gfx modify window 1 set current_pane 1;
+gfx modify window 1 view parallel eye_point 330.892 219.709 275.544 interest_point 54.4465 60.4035 21.2862 up_vector -0.28531 0.920609 -0.266601 view_angle 48.7448 near_clipping_plane 4.0798 far_clipping_plane 1457.98 relative_viewport ndc_placement -1 1 2 2 viewport_coordinates 0 0 1 1;
+gfx modify window 1 set transform_tool current_pane 1 std_view_angle 40 normal_lines no_antialias depth_of_field 0.0 fast_transparency blend_normal;
+
 
 gfx set time 5
 

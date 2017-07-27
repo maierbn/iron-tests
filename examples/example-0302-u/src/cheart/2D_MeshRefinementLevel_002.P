@@ -49,9 +49,9 @@
 !DefVariablePointer={Vel        |FluidVelTP |2}
 !DefVariablePointer={FluidSpace |FluidVelTP |#FluidVelocityTopology|2}
 
-!SetExportFrequency={FluidSpace|1}
-!SetExportFrequency={Vel       |1}
-!SetExportFrequency={FluidPres |1}
+!SetExportFrequency={FluidSpace|100}
+!SetExportFrequency={Vel       |100}
+!SetExportFrequency={FluidPres |100}
 
 !DefProblem={Fluid|TRANSIENT_NAVIER_STOKES_FLOW}
   !UseVariablePointer={Space|FluidSpace}

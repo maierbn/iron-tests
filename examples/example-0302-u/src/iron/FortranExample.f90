@@ -77,6 +77,7 @@ PROGRAM LidDrivenCavity
   INTEGER(CMISSIntg), PARAMETER :: NumberOfMeshComponents=2
   INTEGER(CMISSIntg), PARAMETER :: VelocityMeshComponent=1
   INTEGER(CMISSIntg), PARAMETER :: PressureMeshComponent=2
+  REAL(CMISSRP),      PARAMETER :: PI=4.0_CMISSRP*DATAN(1.0_CMISSRP)
 
   !Program types
   
@@ -88,7 +89,7 @@ PROGRAM LidDrivenCavity
   INTEGER(CMISSIntg)    :: MeshRefinementLevel,NumberOfTimeSteps,TimeStep
   REAL(CMISSRP)         :: StartTime,StopTime,TimeStepSize,LoopStartTime,LoopStopTime
   REAL(CMISSRP)         :: Density,Viscosity,VelocityBC
-  INTEGER(CMISSIntg)    :: SolverType
+  INTEGER(CMISSIntg)    :: SolverType,OutputFrequency
 
   !CMISS variables
 
@@ -123,7 +124,7 @@ PROGRAM LidDrivenCavity
   INTEGER(CMISSIntg)    :: NumberOfDimensions,NumberOfNodes,NumberOfElements
   INTEGER(CMISSIntg)    :: NumberOfNodesPerElement, NumberOfBoundaryPatches, NumberOfBoundaryPatchComponents
   INTEGER(CMISSIntg)    :: NodeNumber,NodeDomain,NumberOfPatchIDs
-  INTEGER(CMISSIntg)    :: NodeIdx,ComponentIdx,ElementIdx,CurrentPatchID,StartIdx,StopIdx
+  INTEGER(CMISSIntg)    :: NodeIdx,ComponentIdx,ElementIdx,CurrentPatchID,PatchIdx,StartIdx,StopIdx
   INTEGER(CMISSIntg)    :: Err
   LOGICAL               :: FileExists,BoundaryFound
   REAL(CMISSRP)         :: vx,vy,vz,x,y,z
@@ -169,15 +170,15 @@ PROGRAM LidDrivenCavity
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) TimeStepSize
     IF(TimeStepSize<=0.0_CMISSRP) CALL HANDLE_ERROR("Invalid time step size.")
     ! Material parameters for incompressible Newtonian fluid model
-    ! get Density, viscosity
+    ! get Viscosity, Density
     CALL GET_COMMAND_ARGUMENT(6,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 6.")
-    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) Density
-    IF(Density<0.0_CMISSRP) CALL HANDLE_ERROR("Invalid density.")
-    CALL GET_COMMAND_ARGUMENT(7,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
-    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 7.")
     READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) Viscosity
     IF(Viscosity<0.0_CMISSRP) CALL HANDLE_ERROR("Invalid viscosity.")
+    CALL GET_COMMAND_ARGUMENT(7,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
+    IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 7.")
+    READ(COMMAND_ARGUMENT(1:ARGUMENT_LENGTH),*) Density
+    IF(Density<0.0_CMISSRP) CALL HANDLE_ERROR("Invalid density.")
     ! get SolverType (direct, iterative)
     CALL GET_COMMAND_ARGUMENT(8,COMMAND_ARGUMENT,ARGUMENT_LENGTH,STATUS)
     IF(STATUS>0) CALL HANDLE_ERROR("Error for command argument 8.")
@@ -191,10 +192,11 @@ PROGRAM LidDrivenCavity
     StopTime                    = 1.0_CMISSRP
     TimeStepSize                = 0.001_CMISSRP
     Density                     = 1.0_CMISSRP
-    Viscosity                   = 1.0_CMISSRP
+    Viscosity                   = 0.025_CMISSRP
     SolverType                  = 0
   ENDIF
   NumberOfTimeSteps=(StopTime-StartTime)/TimeStepSize
+  OutputFrequency=INT(NumberOfTimeSteps/10)
 
   ! Intialise OpenCMISS
   CALL cmfe_Initialise(WorldCoordinateSystem,WorldRegion,Err)
@@ -357,9 +359,7 @@ PROGRAM LidDrivenCavity
       END DO
     END IF
   END DO
-  CALL cmfe_Field_ParameterSetUpdateStart(GeometricField, &
-    & CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,Err)
-  
+
   ! Create the equations set
   CALL cmfe_EquationsSet_Initialise(EquationsSet,Err)
   CALL cmfe_Field_Initialise(EquationsSetField,Err)
@@ -472,93 +472,50 @@ PROGRAM LidDrivenCavity
   CALL cmfe_BoundaryConditions_Initialise(BoundaryConditions,Err)
   CALL cmfe_SolverEquations_BoundaryConditionsCreateStart(SolverEquations,BoundaryConditions,Err)
 
-  !=== Inflow boundary
-  ! Get index in boundary file
-  CurrentPatchID=4
-  CALL cmfe_ImportedMesh_SurfaceGet(BoundaryPatchesImport,CurrentPatchID,StartIdx,StopIdx,Err)
-  ! Now, set boundary condition
-  DO NodeIdx=StartIdx,StopIdx
-    NodeNumber=BoundaryPatchesImport(NodeIdx)
-    CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-    IF(NodeDomain==ComputationalNodeNumber) THEN
-      CALL cmfe_Field_ParameterSetGetNode( &
-        & GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,1, &
-        & 1,1,NodeNumber,1,x,Err)
-      CALL cmfe_Field_ParameterSetGetNode( &
-        & GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,1, &
-        & 1,1,NodeNumber,2,y,Err)
-      vy = 0.0_CMISSRP
-      vx = 1.0_CMISSRP
-      CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
-        & 1,CMFE_BOUNDARY_CONDITION_FIXED,vx,Err)
-      CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
-        & 2,CMFE_BOUNDARY_CONDITION_FIXED,vy,Err)
-    END IF
-  END DO
-  !=== No-slip boundary
-  ! Get index in boundary file
-  CurrentPatchID=1
-  CALL cmfe_ImportedMesh_SurfaceGet(BoundaryPatchesImport,CurrentPatchID,StartIdx,StopIdx,Err)
-  ! Now, set boundary condition
-  DO NodeIdx=StartIdx,StopIdx
-    NodeNumber=BoundaryPatchesImport(NodeIdx)
-    CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-    IF(NodeDomain==ComputationalNodeNumber) THEN
-      vy = 0.0_CMISSRP
-      vx = 0.0_CMISSRP
-      CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
-        & 1,CMFE_BOUNDARY_CONDITION_FIXED,vx,Err)
-      CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
-        & 2,CMFE_BOUNDARY_CONDITION_FIXED,vy,Err)
-    END IF
-  END DO
-  ! Get index in boundary file
-  CurrentPatchID=2
-  CALL cmfe_ImportedMesh_SurfaceGet(BoundaryPatchesImport,CurrentPatchID,StartIdx,StopIdx,Err)
-  ! Now, set boundary condition
-  DO NodeIdx=StartIdx,StopIdx
-    NodeNumber=BoundaryPatchesImport(NodeIdx)
-    CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-    IF(NodeDomain==ComputationalNodeNumber) THEN
-      vy = 0.0_CMISSRP
-      vx = 0.0_CMISSRP
-      CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
-        & 1,CMFE_BOUNDARY_CONDITION_FIXED,vx,Err)
-      CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
-        & 2,CMFE_BOUNDARY_CONDITION_FIXED,vy,Err)
-    END IF
-  END DO
-  ! Get index in boundary file
-  CurrentPatchID=3
-  CALL cmfe_ImportedMesh_SurfaceGet(BoundaryPatchesImport,CurrentPatchID,StartIdx,StopIdx,Err)
-  ! Now, set boundary condition
-  DO NodeIdx=StartIdx,StopIdx
-    NodeNumber=BoundaryPatchesImport(NodeIdx)
-    CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-    IF(NodeDomain==ComputationalNodeNumber) THEN
-      vy = 0.0_CMISSRP
-      vx = 0.0_CMISSRP
-      CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
-        & 1,CMFE_BOUNDARY_CONDITION_FIXED,vx,Err)
-      CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
-        & 2,CMFE_BOUNDARY_CONDITION_FIXED,vy,Err)
-    END IF
-  END DO
-  ! Finish BC solver equations
-  CALL cmfe_SolverEquations_BoundaryConditionsCreateFinish(SolverEquations,Err)
-
-  ! Solve multiple timesteps
-  CALL cmfe_Fields_Initialise(Fields,Err)
-  CALL cmfe_Fields_Create(Region,Fields,Err)
-  WRITE(Filename, "(A45,I1,A8)") "results/current_run/2D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example"
-  CALL cmfe_Fields_ElementsExport(Fields,Filename,"FORTRAN",Err)
-  CALL cmfe_Fields_NodesExport(Fields,Filename,"FORTRAN",Err)
-  DO TimeStep=1,NumberOfTimeSteps
-    LoopStartTime=StartTime+(TimeStep-1_CMISSIntg)*TimeStepSize
-    LoopStopTime=StartTime+TimeStep*TimeStepSize
-    WRITE(*,*) "TIME STEP ",TimeStep,"/",NumberOfTimeSteps
-    WRITE(*,*) " from ",LoopStartTime," to ",LoopStopTime," with dt ",TimeStepSize
-    CALL cmfe_ControlLoop_TimesSet(ControlLoop,LoopStartTime,LoopStopTime,TimeStepSize,Err)
+  ! BC correspond to lid-driven cavity in 2D or 3D
+  ! in both cases, the y=1 boundary is the lid with shear flow, no-slip otherwise
+  IF (NumberOfDimensions==2) THEN
+      !=== Inflow boundary
+      ! Get index in boundary file
+      CurrentPatchID=4
+      CALL cmfe_ImportedMesh_SurfaceGet(BoundaryPatchesImport,CurrentPatchID,StartIdx,StopIdx,Err)
+      ! Now, set boundary condition
+      DO NodeIdx=StartIdx,StopIdx
+        NodeNumber=BoundaryPatchesImport(NodeIdx)
+        CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+        IF(NodeDomain==ComputationalNodeNumber) THEN
+          CALL cmfe_Field_ParameterSetGetNode( &
+            & GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,1, &
+            & 1,1,NodeNumber,1,x,Err)
+          vy = 0.0_CMISSRP
+          vx = 1.0_CMISSRP*DSIN(PI*x)
+          CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
+            & 1,CMFE_BOUNDARY_CONDITION_FIXED,vx,Err)
+          CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
+            & 2,CMFE_BOUNDARY_CONDITION_FIXED,vy,Err)
+        END IF
+      END DO
+      !=== No-slip boundary
+      DO PatchIdx=1,4
+        IF (PatchIdx==4) CYCLE
+        ! Get index in boundary file
+        CurrentPatchID=PatchIdx
+        CALL cmfe_ImportedMesh_SurfaceGet(BoundaryPatchesImport,CurrentPatchID,StartIdx,StopIdx,Err)
+        ! Now, set boundary condition
+        DO NodeIdx=StartIdx,StopIdx
+          NodeNumber=BoundaryPatchesImport(NodeIdx)
+          CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+          IF(NodeDomain==ComputationalNodeNumber) THEN
+            vy = 0.0_CMISSRP
+            vx = 0.0_CMISSRP
+            CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
+              & 1,CMFE_BOUNDARY_CONDITION_FIXED,vx,Err)
+            CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
+              & 2,CMFE_BOUNDARY_CONDITION_FIXED,vy,Err)
+          END IF
+        END DO
+      END DO
+  ELSE
     !=== Inflow boundary
     ! Get index in boundary file
     CurrentPatchID=4
@@ -571,34 +528,169 @@ PROGRAM LidDrivenCavity
         CALL cmfe_Field_ParameterSetGetNode( &
           & GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,1, &
           & 1,1,NodeNumber,1,x,Err)
-        CALL cmfe_Field_ParameterSetGetNode( &
-          & GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,1, &
-          & 1,1,NodeNumber,2,y,Err)
-        IF(abs(x)<1.0e-6_CMISSRP) CYCLE
-        IF(abs(x)>=1.0_CMISSRP) CYCLE
+        vx = 1.0_CMISSRP*DSIN(PI*x)
         vy = 0.0_CMISSRP
-        vx = 1.0_CMISSRP
-        CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
-          & 1,1,NodeNumber,1,vx,Err)
-        CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
-          & 1,1,NodeNumber,2,vy,Err)
+        vz = 0.0_CMISSRP
+        CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
+          & 1,CMFE_BOUNDARY_CONDITION_FIXED,vx,Err)
+        CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
+          & 2,CMFE_BOUNDARY_CONDITION_FIXED,vy,Err)
+        CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
+          & 3,CMFE_BOUNDARY_CONDITION_FIXED,vz,Err)
       END IF
     END DO
+    !=== No-slip boundary
+    DO PatchIdx=1,6
+      IF (PatchIdx==4) CYCLE
+      ! Get index in boundary file
+      CurrentPatchID=PatchIdx
+      CALL cmfe_ImportedMesh_SurfaceGet(BoundaryPatchesImport,CurrentPatchID,StartIdx,StopIdx,Err)
+      ! Now, set boundary condition
+      DO NodeIdx=StartIdx,StopIdx
+        NodeNumber=BoundaryPatchesImport(NodeIdx)
+        CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+        IF(NodeDomain==ComputationalNodeNumber) THEN
+          vx = 0.0_CMISSRP
+          vy = 0.0_CMISSRP
+          vz = 0.0_CMISSRP
+          CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
+            & 1,CMFE_BOUNDARY_CONDITION_FIXED,vx,Err)
+          CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
+            & 2,CMFE_BOUNDARY_CONDITION_FIXED,vy,Err)
+          CALL cmfe_BoundaryConditions_SetNode(BoundaryConditions,DependentField,CMFE_FIELD_U_VARIABLE_TYPE,1,1,NodeNumber, &
+            & 3,CMFE_BOUNDARY_CONDITION_FIXED,vz,Err)
+        END IF
+      END DO
+    END DO
+  END IF
+  ! Finish BC solver equations
+  CALL cmfe_SolverEquations_BoundaryConditionsCreateFinish(SolverEquations,Err)
+
+  ! Solve multiple timesteps
+  CALL cmfe_Fields_Initialise(Fields,Err)
+  CALL cmfe_Fields_Create(Region,Fields,Err)
+  WRITE(Filename, "(A20,I1,A24,I1,A8)") "results/current_run/",NumberOfDimensions, &
+    & "D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example"
+  CALL cmfe_Fields_ElementsExport(Fields,Filename,"FORTRAN",Err)
+  CALL cmfe_Fields_NodesExport(Fields,Filename,"FORTRAN",Err)
+  DO TimeStep=1,NumberOfTimeSteps
+    LoopStartTime=StartTime+FLOAT(TimeStep-1_CMISSIntg)*TimeStepSize
+    LoopStopTime=StartTime+FLOAT(TimeStep)*TimeStepSize
+    WRITE(*,*) "TIME STEP ",TimeStep,"/",NumberOfTimeSteps
+    WRITE(*,*) " from ",LoopStartTime," to ",LoopStopTime," with dt ",TimeStepSize
+    CALL cmfe_ControlLoop_TimesSet(ControlLoop,LoopStartTime,LoopStopTime,TimeStepSize,Err)
+    ! Update BC - same as above, we are just doing this for demonstrating
+    !             how to modify BC values in time
+    IF (NumberOfDimensions==2) THEN
+      !=== Inflow boundary
+      ! Get index in boundary file
+      CurrentPatchID=4
+      CALL cmfe_ImportedMesh_SurfaceGet(BoundaryPatchesImport,CurrentPatchID,StartIdx,StopIdx,Err)
+      ! Now, set boundary condition
+      DO NodeIdx=StartIdx,StopIdx
+        NodeNumber=BoundaryPatchesImport(NodeIdx)
+        CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+        IF(NodeDomain==ComputationalNodeNumber) THEN
+          CALL cmfe_Field_ParameterSetGetNode( &
+            & GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,1, &
+            & 1,1,NodeNumber,1,x,Err)
+          vy = 0.0_CMISSRP
+          vx = 1.0_CMISSRP*DSIN(PI*x)
+          CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+            & 1,1,NodeNumber,1,vx,Err)
+          CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+            & 1,1,NodeNumber,2,vy,Err)
+        END IF
+      END DO
+      !=== No-slip boundary
+      DO PatchIdx=1,4
+        IF (PatchIdx==4) CYCLE
+        ! Get index in boundary file
+        CurrentPatchID=PatchIdx
+        CALL cmfe_ImportedMesh_SurfaceGet(BoundaryPatchesImport,CurrentPatchID,StartIdx,StopIdx,Err)
+        ! Now, set boundary condition
+        DO NodeIdx=StartIdx,StopIdx
+          NodeNumber=BoundaryPatchesImport(NodeIdx)
+          CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+          IF(NodeDomain==ComputationalNodeNumber) THEN
+            vy = 0.0_CMISSRP
+            vx = 0.0_CMISSRP
+            CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+              & 1,1,NodeNumber,1,vx,Err)
+            CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+              & 1,1,NodeNumber,2,vy,Err)
+          END IF
+        END DO
+      END DO
+    ELSE
+      !=== Inflow boundary
+      ! Get index in boundary file
+      CurrentPatchID=4
+      CALL cmfe_ImportedMesh_SurfaceGet(BoundaryPatchesImport,CurrentPatchID,StartIdx,StopIdx,Err)
+      ! Now, set boundary condition
+      DO NodeIdx=StartIdx,StopIdx
+        NodeNumber=BoundaryPatchesImport(NodeIdx)
+        CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+        IF(NodeDomain==ComputationalNodeNumber) THEN
+          CALL cmfe_Field_ParameterSetGetNode( &
+            & GeometricField,CMFE_FIELD_U_VARIABLE_TYPE,1, &
+            & 1,1,NodeNumber,1,x,Err)
+          vx = 1.0_CMISSRP*DSIN(PI*x)
+          vy = 0.0_CMISSRP
+          vz = 0.0_CMISSRP
+          CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+            & 1,1,NodeNumber,1,vx,Err)
+          CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+            & 1,1,NodeNumber,2,vy,Err)
+          CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+            & 1,1,NodeNumber,3,vz,Err)
+        END IF
+      END DO
+      !=== No-slip boundary
+      DO PatchIdx=1,6
+        IF (PatchIdx==4) CYCLE
+        ! Get index in boundary file
+        CurrentPatchID=PatchIdx
+        CALL cmfe_ImportedMesh_SurfaceGet(BoundaryPatchesImport,CurrentPatchID,StartIdx,StopIdx,Err)
+        ! Now, set boundary condition
+        DO NodeIdx=StartIdx,StopIdx
+          NodeNumber=BoundaryPatchesImport(NodeIdx)
+          CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+          IF(NodeDomain==ComputationalNodeNumber) THEN
+            vx = 0.0_CMISSRP
+            vy = 0.0_CMISSRP
+            vz = 0.0_CMISSRP
+            CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+              & 1,1,NodeNumber,1,vx,Err)
+            CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+              & 1,1,NodeNumber,2,vy,Err)
+            CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
+              & 1,1,NodeNumber,3,vz,Err)
+          END IF
+        END DO
+      END DO
+    END IF
+    CALL cmfe_Field_ParameterSetUpdateStart(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,Err)
     CALL cmfe_Field_ParameterSetUpdateFinish(DependentField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,Err)
     ! The actual solve
     CALL cmfe_Problem_Solve(Problem,Err)
     ! Export solution
+    IF (MOD(TimeStep,OutputFrequency)/=0) CYCLE
     IF(TIMESTEP.LE.9) THEN
-      WRITE(filename, "(A45,I1,A9,I1)") "results/current_run/2D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example_",TIMESTEP
+      WRITE(filename, "(A20,I1,A24,I1,A9,I1)") "results/current_run/",NumberOfDimensions, &
+        & "D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example_",TIMESTEP
       filename=trim(filename)
     ELSEIF(TIMESTEP.LE.99) THEN
-      WRITE(filename, "(A45,I1,A9,I2)") "results/current_run/2D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example_",TIMESTEP
+      WRITE(filename, "(A20,I1,A24,I1,A9,I2)") "results/current_run/",NumberOfDimensions, &
+        & "D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example_",TIMESTEP
       filename=trim(filename)
     ELSEIF(TIMESTEP.LE.999) THEN
-      WRITE(filename, "(A45,I1,A9,I3)") "results/current_run/2D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example_",TIMESTEP
+      WRITE(filename, "(A20,I1,A24,I1,A9,I3)") "results/current_run/",NumberOfDimensions, &
+        & "D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example_",TIMESTEP
       filename=trim(filename)
     ELSE
-      WRITE(filename, "(A45,I1,A9,I4)") "results/current_run/2D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example_",TIMESTEP
+      WRITE(filename, "(A20,I1,A24,I1,A9,I4)") "results/current_run/",NumberOfDimensions, &
+        & "D_MeshRefinementLevel_00",MeshRefinementLevel,"/Example_",TIMESTEP
       filename=trim(filename)
     END IF
     CALL cmfe_Fields_NodesExport(Fields,filename,"FORTRAN",Err)

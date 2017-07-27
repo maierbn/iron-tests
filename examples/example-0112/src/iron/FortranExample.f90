@@ -218,7 +218,12 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   ENDIF
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
+  ! Dirstribute the Applied Load on the Elements   
+  IF(NUMBER_GLOBAL_Z_ELEMENTS >= 1) THEN ! 3D
+    BCFORCE_MAX=BCFORCE_MAX/(NUMBER_GLOBAL_Y_ELEMENTS*NUMBER_GLOBAL_Z_ELEMENTS)
+  ELSE  ! 2d
+    BCFORCE_MAX=BCFORCE_MAX/NUMBER_GLOBAL_Y_ELEMENTS  
+  ENDIF
 
   ! Intialise cmiss
   CALL cmfe_Initialise(WorldCoordinateSystem,WorldRegion,Err)
@@ -543,68 +548,90 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
     
     IF(NumberOfSpatialCoordinates==3) THEN ! 3D Case
 
-      SIDE_SIZE = NUMBER_GLOBAL_Z_ELEMENTS*INTERPOLATION_TYPE+1
-      TOP_SIZE = NUMBER_GLOBAL_Y_ELEMENTS*INTERPOLATION_TYPE+1
-      
-      DO col=1,SIDE_SIZE
-        DO row=1,TOP_SIZE
-           IF((col==1.AND.row==1).OR.(col==1.AND.row==TOP_SIZE).OR. &   ! Corner Node -> Scale BC Force by factor 1/4
-             & (col==SIDE_SIZE.AND.row==1).OR.(col==SIDE_SIZE.AND.row==TOP_SIZE)) THEN
-             ! transform matrix entries to column
-             node_idx = (col-1)*SIDE_SIZE+row
-             NodeNumber=RightSurfaceNodes(node_idx)
-             CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-             IF(NodeDomain==ComputationalNodeNumber) THEN
-               CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
-                 & 1,1,NodeNumber,2,BCFORCE/4.0_CMISSRP,Err) ! Apply Force BC
-             ENDIF   
-             WRITE(*,*) node_idx,NodeNumber 
-           ELSEIF(col==1 .OR. col==TOP_SIZE) THEN ! Edge Node (Left/Right) -> Scale BC Force by factor 1/2
-             ! transform matrix entries to column
-             node_idx = (col-1)*SIDE_SIZE+row
-             NodeNumber=RightSurfaceNodes(node_idx)
-             CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-             IF(NodeDomain==ComputationalNodeNumber) THEN
-               CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
-                 & 1,1,NodeNumber,2,BCFORCE/2.0_CMISSRP,Err) ! Apply Force BC
-             ENDIF           
-           ELSEIF(row==1 .OR. row==SIDE_SIZE) THEN ! Edge Node (Top/Bottom) -> Scale BC
-             ! transform matrix entries to column
-             node_idx = (col-1)*SIDE_SIZE+row
-             NodeNumber=RightSurfaceNodes(node_idx)
-             CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-             IF(NodeDomain==ComputationalNodeNumber) THEN
-               CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
-                 & 1,1,NodeNumber,2,BCFORCE/2.0_CMISSRP,Err) ! Apply Force BC
-             ENDIF                
-           ELSE ! Inner Node -> No Scaling
-             node_idx = (col-1)*SIDE_SIZE+row
-             NodeNumber=RightSurfaceNodes(node_idx)
-             CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-             IF(NodeDomain==ComputationalNodeNumber) THEN
-               CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
-                 & 1,1,NodeNumber,2,BCFORCE,Err)
+      IF(INTERPOLATION_TYPE==1) THEN
+        SIDE_SIZE = NUMBER_GLOBAL_Z_ELEMENTS*INTERPOLATION_TYPE+1
+        TOP_SIZE = NUMBER_GLOBAL_Y_ELEMENTS*INTERPOLATION_TYPE+1
+        
+        DO col=1,SIDE_SIZE
+          DO row=1,TOP_SIZE
+             IF((col==1.AND.row==1).OR.(col==1.AND.row==TOP_SIZE).OR. &   ! Corner Node -> Scale BC Force by factor 1/4
+               & (col==SIDE_SIZE.AND.row==1).OR.(col==SIDE_SIZE.AND.row==TOP_SIZE)) THEN
+               ! transform matrix entries to column
+               node_idx = (col-1)*SIDE_SIZE+row
+               NodeNumber=RightSurfaceNodes(node_idx)
+               CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+               IF(NodeDomain==ComputationalNodeNumber) THEN
+                 CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE, &
+                   & CMFE_FIELD_VALUES_SET_TYPE,1,1,NodeNumber,2,BCFORCE/4.0_CMISSRP,Err) ! Apply Force BC
+               ENDIF   
+               !WRITE(*,*) node_idx,NodeNumber 
+             ELSEIF(col==1 .OR. col==TOP_SIZE) THEN ! Edge Node (Left/Right) -> Scale BC Force by factor 1/2
+               ! transform matrix entries to column
+               node_idx = (col-1)*SIDE_SIZE+row
+               NodeNumber=RightSurfaceNodes(node_idx)
+               CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+               IF(NodeDomain==ComputationalNodeNumber) THEN
+                 CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE, &
+                   & CMFE_FIELD_VALUES_SET_TYPE,1,1,NodeNumber,2,BCFORCE/2.0_CMISSRP,Err) ! Apply Force BC
+               ENDIF           
+             ELSEIF(row==1 .OR. row==SIDE_SIZE) THEN ! Edge Node (Top/Bottom) -> Scale BC
+               ! transform matrix entries to column
+               node_idx = (col-1)*SIDE_SIZE+row
+               NodeNumber=RightSurfaceNodes(node_idx)
+               CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+               IF(NodeDomain==ComputationalNodeNumber) THEN
+                 CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE, &
+                   & CMFE_FIELD_VALUES_SET_TYPE,1,1,NodeNumber,2,BCFORCE/2.0_CMISSRP,Err) ! Apply Force BC
+               ENDIF                
+             ELSE ! Inner Node -> No Scaling
+               node_idx = (col-1)*SIDE_SIZE+row
+               NodeNumber=RightSurfaceNodes(node_idx)
+               CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+               IF(NodeDomain==ComputationalNodeNumber) THEN
+                 CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE, &
+                   & CMFE_FIELD_VALUES_SET_TYPE,1,1,NodeNumber,2,BCFORCE,Err)
+               ENDIF
              ENDIF
-           ENDIF
+          ENDDO
         ENDDO
-      ENDDO
+      ELSE
+        WRITE(*,'(A)') "Error, in this example consistent nodal forces (3D) are only implemented for linear interpolation"
+      ENDIF
       
  
     ELSE ! This is the 2D case
-      DO node_idx=1,SIZE(RightSurfaceNodes,1)
-        NodeNumber=RightSurfaceNodes(node_idx)
-        IF(node_idx==1 .OR. node_idx==SIZE(RightSurfaceNodes,1)) THEN
-          FORCE=BCFORCE/2.0_CMISSRP
-          WRITE(*,*) NodeNumber, node_idx,FORCE
-        ELSE
-          FORCE=BCFORCE
-        ENDIF 
-        CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
-        IF(NodeDomain==ComputationalNodeNumber) THEN
-          CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE, &
-            & 1,1,NodeNumber,2,FORCE,Err)!BCDISP,Err)
-        ENDIF
-      ENDDO
+      IF(INTERPOLATION_TYPE==2) THEN ! Calculate consistent nodal forces for quadratic interpolation
+        DO node_idx=1,SIZE(RightSurfaceNodes,1)
+          NodeNumber=RightSurfaceNodes(node_idx)
+          IF(node_idx==1 .OR. node_idx==SIZE(RightSurfaceNodes,1)) THEN
+            FORCE=BCFORCE/6.0_CMISSRP
+          ELSEIF(MOD(node_idx,2)==0) THEN ! If True The Node Number is Even -> Node is in the inner of an elemnt
+            FORCE=BCFORCE*2.0_CMISSRP/3.0_CMISSRP
+          ELSE  
+            FORCE=BCFORCE/3.0_CMISSRP
+          ENDIF 
+          CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+          IF(NodeDomain==ComputationalNodeNumber) THEN
+            CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE, &
+              & CMFE_FIELD_VALUES_SET_TYPE,1,1,NodeNumber,2,FORCE,Err)!BCDISP,Err)
+          ENDIF
+        ENDDO
+      ELSE ! Calculate consistent nodal forces for linear interpolation
+        DO node_idx=1,SIZE(RightSurfaceNodes,1)
+          NodeNumber=RightSurfaceNodes(node_idx)
+          IF(node_idx==1 .OR. node_idx==SIZE(RightSurfaceNodes,1)) THEN
+            FORCE=BCFORCE/2.0_CMISSRP
+            WRITE(*,*) NodeNumber, node_idx,FORCE
+          ELSE
+            FORCE=BCFORCE
+          ENDIF 
+          CALL cmfe_Decomposition_NodeDomainGet(Decomposition,NodeNumber,1,NodeDomain,Err)
+          IF(NodeDomain==ComputationalNodeNumber) THEN
+            CALL cmfe_Field_ParameterSetUpdateNode(DependentField,CMFE_FIELD_DELUDELN_VARIABLE_TYPE, &
+              & CMFE_FIELD_VALUES_SET_TYPE,1,1,NodeNumber,2,FORCE,Err)!BCDISP,Err)
+          ENDIF
+        ENDDO
+      ENDIF
     ENDIF
     
     
@@ -635,7 +662,14 @@ PROGRAM LinearElasticity2DExtensionPlaneStressLagrangeBasis
   END DO
 
   ! Export final solution and topology
-  CALL cmfe_Fields_ElementsExport(Fields,"results/current_run/Example","FORTRAN",Err)
+  WRITE(filename, "(A21,I3.3,A1,I3.3,A1,I3.3,A2,I2.2,A1,I2.2,A1,I2.2,A2,I1,A2,I1,A8)") &
+      & "results/current_run/l", &
+      & INT(WIDTH),"x",INT(HEIGHT),"x",INT(LENGTH), &
+      & "_n", &
+      & NUMBER_GLOBAL_X_ELEMENTS,"x",NUMBER_GLOBAL_Y_ELEMENTS,"x",NUMBER_GLOBAL_Z_ELEMENTS, &
+      & "_i",INTERPOLATION_TYPE,"_s",SOLVER_TYPE,"/Example"
+  filename=trim(filename)
+  CALL cmfe_Fields_ElementsExport(Fields,filename,"FORTRAN",Err)
   CALL cmfe_Fields_Finalise(Fields,Err)
 
   ! Finalise

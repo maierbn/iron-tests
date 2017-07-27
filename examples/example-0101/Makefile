@@ -1,20 +1,41 @@
 default:
-	make debug
-	make release
-	make compare
-	make visualize
+	make clean
+	make release-fast
+	make compare-fast
+	make visualize-fast
 
-debug:
-	bash run_example.sh debug
+fast:
+	make
 
-release:
-	bash run_example.sh release
+big:
+	make clean
+	make release-big
+	make compare-big
+	make visualize-big
 
-compare:
-	bash results/compare_iron_abaqus.sh
+debug-fast:
+	bash run_example.sh debug fast
 
-visualize:
-	cmgui results/cmgui.com
+release-fast:
+	bash run_example.sh release fast
+
+debug-big:
+	bash run_example.sh debug big
+
+release-big:
+	bash run_example.sh release big
+
+compare-fast:
+	echo ">>>ERROR: Automatic comparison not implemented"
+
+compare-big:
+	echo ">>>ERROR: Automatic comparison not implemented"
+
+visualize-fast:
+	echo ">>>ERROR: Automatic visualization not implemented"
+
+visualize-big:
+	echo ">>>ERROR: Automatic visualization not implemented"
 
 clean:
 	rm -rf *.diag *.log *.aux *.out debug/ release/ results/current_run/*.exnode results/current_run/*.exelem doc/figures/*-eps-converted-to.pdf
