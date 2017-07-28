@@ -3,8 +3,7 @@ default:
 	mkdir -p results/current_run
 	make debug
 	make release
-	make compare
-	make visualize
+	make create-figures
 
 debug:
 	bash run_example.sh debug
@@ -12,11 +11,8 @@ debug:
 release:
 	bash run_example.sh release
 
-compare:
-	cd results; python compare_solutions.py
-
 create-figures:
-	cd examples; bash create_figures.sh
+	cd src/scripts; python time_convergence.py 64 3.0; python time_convergence.py 64 1.0; cd ../../results/current_run; cp *.png ../../doc/figures
 
 clean:
 	rm -rf *.diag *.log *.aux *.out debug/ release/

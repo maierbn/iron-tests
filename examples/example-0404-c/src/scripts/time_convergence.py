@@ -10,7 +10,7 @@ import os
 from scipy import stats
 
 # name of the folder
-folder="../../results/current_run/l1x1_n64_i2_s0_00025"
+folder="../../results/current_run/"
 
 # get the grid size, specific time for computing the convergence rate and the end time
 if len(sys.argv) >1:
@@ -107,7 +107,7 @@ def makeplot_TimeConv_err(x,y,labels):
 
   global folder
   imagename="{}".format(folder+"errL2-Time-Conv-n"+str(gridsize)+"-t"+str(time)+".png")     
-  fig=plt.figure(1,figsize=[8,7])
+  fig=plt.figure(2,figsize=[8,7])
 
   symbols=['ro','bo']
   sl=[1,2]
@@ -117,9 +117,14 @@ def makeplot_TimeConv_err(x,y,labels):
   #intercepts=[1,2.35]
 
   for i in range(len(y)):
-    plt.loglog(x,y[i],'ro',label=labels[i])
+    print "i=",i,", x=",x,"y[i]=",y[i]
+    #plt.loglog(x,y[i],'ro',label=labels[i])
+    plt.plot(x,y[i],'ro',label=labels[i])
+    plt.xscale('log')
+    plt.yscale('log')
     slope, intercept, r_value, p_value, std_err = stats.linregress(np.log10(x),np.log10(y[i]))
     print "i, slope: ", i,slope
+    plt.title("slope="+str(slope))
     #abline_values=[pow(10,sl[i]*j+intercepts[i]) for j  in np.log10(x[i])]  
     abline_values=[pow(10,slope*j+intercept) for j  in np.log10(x)]
     plt.loglog(x,abline_values,sl_lines[i],label=sl_labels[i],linewidth=3)
