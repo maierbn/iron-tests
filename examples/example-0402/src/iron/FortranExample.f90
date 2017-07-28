@@ -405,11 +405,14 @@ PROGRAM MONODOMAINEXAMPLE
   !Set Cm, slow-twitch
     CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
       & 0.58_CMISSRP,Err)
-    STIM_VALUE=1200.0_CMISSRP
+    !STIM_VALUE=1200.0_CMISSRP
+    STIM_VALUE=120.0_CMISSRP
+    PRINT *, "slow twitch"
   ELSE  
     CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,2, &
     & 1.0_CMISSRP,Err)
-    STIM_VALUE=2000.0_CMISSRP
+    STIM_VALUE=80.0_CMISSRP
+    PRINT *, "fast twitch"
   ENDIF  
   !Set conductivity
   CALL cmfe_Field_ComponentValuesInitialise(MaterialsField,CMFE_FIELD_U_VARIABLE_TYPE,CMFE_FIELD_VALUES_SET_TYPE,3, &

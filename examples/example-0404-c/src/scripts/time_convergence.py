@@ -10,7 +10,7 @@ import os
 from scipy import stats
 
 # name of the folder
-folder="../../results/current_run/"
+folder="../../results/current_run/l1x1_n64_i2_s0_00025"
 
 # get the grid size, specific time for computing the convergence rate and the end time
 if len(sys.argv) >1:

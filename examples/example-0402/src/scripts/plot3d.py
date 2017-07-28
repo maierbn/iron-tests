@@ -34,7 +34,10 @@ def animate(t):
   Z_iron = X.copy()
   for x in range(nx+1):
     for y in range(ny+1):
-      Z_iron[x,y] = iron_data[x*(ny+1)+y]
+      try:
+        Z_iron[x,y] = iron_data[x*(ny+1)+y]
+      except:    # fails for nans
+        Z_iron[x,y] = 0.0
         
   ax1.plot_surface(X, Y, Z_iron, cmap=cm.coolwarm, linewidth=1, antialiased=False, rstride=1, cstride=1)
   ax1.set_zlim(-80,30)
@@ -66,6 +69,7 @@ animate(0)
 
 anim = animation.FuncAnimation(fig, animate,
                                frames=1000, interval=20)
+#plt.show()
 # save to animation
 anim.save(animation_name)
 print "saved to {}".format(animation_name)
