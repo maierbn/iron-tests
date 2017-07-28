@@ -15,5 +15,5 @@ cd ..
 echo "  running $folder"
 # <number elements X> <interpolation type> <solver type> <PDE step size> <stop time> <output frequency> <CellML Model URL> <slow-twitch> <ODE time-step>
 
-mkdir -p results/current_run/l1x1_n16_i2_s0_01 && ./$folder/src/example 16 2 0 0.01 10 1 hodgkin_huxley_1952.cellml F 0.01 && mv *.ex* results/current_run/l1x1_n16_i2_s0_01
+mkdir -p results/current_run/l1x1_n16_i2_s0_05 && ./$folder/src/example 16 2 0 0.05 10 1 hodgkin_huxley_1952.cellml F 0.05 && mv *.ex* results/current_run/l1x1_n16_i2_s0_05
 

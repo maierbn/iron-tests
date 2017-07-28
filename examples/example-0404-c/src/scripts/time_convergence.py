@@ -22,7 +22,7 @@ else:
 
 print "grid size: ", gridsize
 print "time: ", time
-
+###############################################################################
 # extract time step from the name of subfolders
 def get_timestep(foldername):
   #print foldername
@@ -37,7 +37,7 @@ def get_timestep(foldername):
   timestep=float("0."+foldername[j_s:j_e])
   #print "timestep",timestep
   return timestep
-
+###############################################################################
 # get the data for the time convergence study from the current_run folder 
 def get_data_TimeConv(time):
 
@@ -71,25 +71,25 @@ def get_data_TimeConv(time):
     #print Vm[i]
   print "timesteps: ", timesteps
   return x,Vm,timesteps
-
-x,Vm,timesteps=get_data_TimeConv(time)
-
+###############################################################################
 def makeplot_TimeConv(x,y,labels):
 
    global folder
    imagename="{}".format(folder+"image-Time-Conv-n"+str(gridsize)+"-t"+str(time)+".png")
         
-   fig=plt.figure(1)
+   fig=plt.figure(1,figsize=[8,7])
    for i in range(len(y)):
       plt.plot(x,y[i],label=str(labels[i]))
-   plt.title("Vm")
+   #plt.title("Vm")
+   plt.xlabel('Position along fiber, $s$',{'fontsize':20})
+   plt.xticks(size=18)
+   plt.ylabel('Transmembrane potential, $V_m$',{'fontsize':20})
+   plt.yticks(size=18)
    plt.legend()
    plt.show()    
    fig.savefig(imagename)
    print "Figure saved to {}".format(imagename)
-
-makeplot_TimeConv(x,Vm,timesteps)
-
+###############################################################################
 # The smallest time step is considered as the reference
 def find_err_L2_rel(Vm):
   num_runs=len(Vm)  
@@ -102,22 +102,42 @@ def find_err_L2_rel(Vm):
     err[i-1]=LA.norm(Vm[i]-Vm[0],2)/Vm_L2
     #print err
   return err
-
+###############################################################################
 def makeplot_TimeConv_err(x,y,labels):
 
   global folder
   imagename="{}".format(folder+"errL2-Time-Conv-n"+str(gridsize)+"-t"+str(time)+".png")     
-  fig=plt.figure(1)
+  fig=plt.figure(1,figsize=[8,7])
+
+  symbols=['ro','bo']
+  sl=[1,2]
+  sl_labels=["slope 1","slope 2"]
+  sl_lines=['r:','b:']  
+  
+  #intercepts=[1,2.35]
 
   for i in range(len(y)):
     plt.loglog(x,y[i],'ro',label=labels[i])
-    slope, intercept, r_value, p_value, std_err = stats.linregress(np.log10(x),np.log10(y))
+    slope, intercept, r_value, p_value, std_err = stats.linregress(np.log10(x),np.log10(y[i]))
     print "i, slope: ", i,slope
-  plt.title("Vm")
-  plt.legend()
+    #abline_values=[pow(10,sl[i]*j+intercepts[i]) for j  in np.log10(x[i])]  
+    abline_values=[pow(10,slope*j+intercept) for j  in np.log10(x)]
+    plt.loglog(x,abline_values,sl_lines[i],label=sl_labels[i],linewidth=3)
+
+  #plt.title("Vm")
+  plt.xlabel('Time step, $dt$',{'fontsize':20})
+  plt.xticks(size=18)
+  plt.xlim(right=0.1)
+  plt.ylabel('Relative L2-norm error of $V_m$',{'fontsize':20})
+  plt.yticks(size=18)
+  plt.legend(loc='upper right')
   plt.show()    
   fig.savefig(imagename)
   print "Figure saved to {}".format(imagename)
+###############################################################################
+
+x,Vm,timesteps=get_data_TimeConv(time)
+makeplot_TimeConv(x,Vm,timesteps)
 
 err_L2=[0.0 for i in range(1)]
 err_L2[0]=find_err_L2_rel(Vm)

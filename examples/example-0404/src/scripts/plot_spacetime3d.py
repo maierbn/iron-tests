@@ -71,9 +71,11 @@ for j in range(j_e):
     if foldername[j]=='s':
        j_s=j+3
 
-time_step=float("0."+foldername[j_s:j_e])
-print "time_step",time_step
-time=np.arange(n_timestep)*time_step
+timestep=float("0."+foldername[j_s:j_e])
+print "timestep",timestep
+end_time=10.0
+stride=end_time/(n_timestep-1)
+time=np.arange(n_timestep)*stride
 makeplot(time,x,Vm)
 
 
