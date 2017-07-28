@@ -86,7 +86,7 @@ def makeplot_TimeConv(x,y,labels):
    plt.ylabel('Transmembrane potential, $V_m$',{'fontsize':20})
    plt.yticks(size=18)
    plt.legend()
-   plt.show()    
+   #plt.show()    
    fig.savefig(imagename)
    print "Figure saved to {}".format(imagename)
 ###############################################################################
@@ -131,7 +131,7 @@ def makeplot_TimeConv_err(x,y,labels):
   plt.ylabel('Relative L2-norm error of $V_m$',{'fontsize':20})
   plt.yticks(size=18)
   plt.legend(loc='upper right')
-  plt.show()    
+  #plt.show()    
   fig.savefig(imagename)
   print "Figure saved to {}".format(imagename)
 ###############################################################################
