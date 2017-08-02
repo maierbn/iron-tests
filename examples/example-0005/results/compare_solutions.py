@@ -81,6 +81,7 @@ for s in np.arange(0, 2, 1):
             l2diff   = np.linalg.norm(rvals-ivals, 2)
             if (l2diff > tolu):
                 status = filename+"       | Analytical - Iron |_2 = "+str(l2diff)
+                print status
                 failedtests_file.write(status+"\n")
                 NumberOfFailedTests += 1
         except:
@@ -146,6 +147,7 @@ for s in np.arange(0, 2, 1):
             l2diff   = np.linalg.norm(rvals-ivals, 2)
             if (l2diff > tolu):
                 status = filename+"       | Analytical - Iron |_2 = "+str(l2diff)
+                print status
                 failedtests_file.write(status+"\n")
                 NumberOfFailedTests += 1
         except:

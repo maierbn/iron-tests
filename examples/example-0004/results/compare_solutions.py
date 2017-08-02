@@ -150,10 +150,12 @@ for s in np.arange(0, 2, 1):
                 NumberOfFailedTests += 1
             elif (l2diff_ci > tolu):
                 status = filename+"       | CHeart   - Iron |_2 = "+str(l2diff_ci)
+                print status
                 failedtests_file.write(status+"\n")
                 NumberOfFailedTests += 1
             elif (l2diff_i0i > tolu):
                 status = filename+"       | Iron_ref - Iron |_2 = "+str(l2diff_i0i)
+                print status
                 failedtests_file.write(status+"\n")
                 NumberOfFailedTests += 1
             else:
