@@ -9,6 +9,7 @@ from matplotlib import cm
 import exnode_reader
 from matplotlib import animation
 import sys
+import os
 
 def animate(t):
   global foldername, image_name
@@ -42,11 +43,13 @@ def animate(t):
   ax1.plot_surface(X, Y, Z_iron, cmap=cm.coolwarm, linewidth=1, antialiased=False, rstride=1, cstride=1)
   ax1.set_zlim(-80,30)
   plt.title("t = "+str(t*0.005))
-      
+  
   if t % 100 == 0:
-    filename = image_name+"_t"+str(t)+".png"
-    plt.savefig(filename)
-    print "saved to {}".format(filename)
+    filenamepng = image_name+"_t"+str(t)+".png"
+    filenameeps = image_name+"_t"+str(t)+".eps"
+    plt.savefig(filenamepng)
+    print "saved to {}".format(filenamepng)
+    os.system("convert "+filenamepng+" "+filenameeps)
       
 # get folder name from command line argument
 foldername = "."

@@ -75,7 +75,8 @@ def get_data_TimeConv(time):
 def makeplot_TimeConv(x,y,labels):
 
    global folder
-   imagename="{}".format(folder+"image-Time-Conv-n"+str(gridsize)+"-t"+str(time)+".png")
+   imagenamepng="{}".format(folder+"image-Time-Conv-n"+str(gridsize)+"-t"+str(time)+".png")
+   imagenameeps="{}".format(folder+"image-Time-Conv-n"+str(gridsize)+"-t"+str(time)+".eps")
         
    fig=plt.figure(1,figsize=[8,7])
    for i in range(len(y)):
@@ -87,8 +88,9 @@ def makeplot_TimeConv(x,y,labels):
    plt.yticks(size=18)
    plt.legend()
    #plt.show()    
-   fig.savefig(imagename)
-   print "Figure saved to {}".format(imagename)
+   fig.savefig(imagenamepng)
+   print "Figure saved to {}".format(imagenamepng)
+   os.system("convert "+imagenamepng+" "+imagenameeps)
 ###############################################################################
 # The smallest time step is considered as the reference
 def find_err_L2_rel(Vm):
@@ -106,7 +108,8 @@ def find_err_L2_rel(Vm):
 def makeplot_TimeConv_err(x,y,labels):
 
   global folder
-  imagename="{}".format(folder+"errL2-Time-Conv-n"+str(gridsize)+"-t"+str(time)+".png")     
+  imagenamepng="{}".format(folder+"errL2-Time-Conv-n"+str(gridsize)+"-t"+str(time)+".png")
+  imagenameeps="{}".format(folder+"errL2-Time-Conv-n"+str(gridsize)+"-t"+str(time)+".eps")
   fig=plt.figure(2,figsize=[8,7])
 
   symbols=['ro','bo']
@@ -137,8 +140,9 @@ def makeplot_TimeConv_err(x,y,labels):
   plt.yticks(size=18)
   plt.legend(loc='upper right')
   #plt.show()    
-  fig.savefig(imagename)
-  print "Figure saved to {}".format(imagename)
+  fig.savefig(imagenamepng)
+  print "Figure saved to {}".format(imagenamepng)
+  os.system("convert "+imagenamepng+" "+imagenameeps)
 ###############################################################################
 
 x,Vm,timesteps=get_data_TimeConv(time)

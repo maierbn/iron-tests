@@ -16,7 +16,7 @@ compare:
 	cd results; rm -f failed.tests results.summary; python compare_solutions.py
 
 create-figures:
-	cd examples; bash create_figures.sh
+	bash create_figures.sh
 
 clean:
 	rm -rf *.diag *.log *.aux *.out debug/ release/

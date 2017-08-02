@@ -28,6 +28,7 @@ create-figures:
 
 clean:
 	rm -rf *aux doc/*aux *.bbl *.blg *.fdb_latexmk  *.fls *.lof *.log *.lot *.out *.toc
+	rm -rf examples/example-*/doc/figures/current_run_*eps
 	rm -rf examples/example-*/doc/figures/*-eps-converted-to.pdf
 	rm -rf examples/example-*/doc/*.aux
 	rm -rf examples/example-*/*.out
@@ -38,3 +39,4 @@ clean:
 	rm -rf examples/example-*/results/failed.tests
 	rm -rf examples/example-*/results/results.summary
 	rm -rf failed.tests results.summary
+	rm -rf examples/example-*/src/cheart/gmon.out

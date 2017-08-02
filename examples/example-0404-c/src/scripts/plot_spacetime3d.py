@@ -18,7 +18,8 @@ if foldername[-1] != "/":
 print "foldername: ", foldername
 
 # creat image  name
-imagename="{}".format(foldername)+"image.png"
+imagenamepng="{}".format(foldername)+"image.png"
+imagenameeps="{}".format(foldername)+"image.eps"
 
 # get all exnode files (sorted) from the folder
 files = exnode_reader.get_exnode_files(foldername)
@@ -43,7 +44,7 @@ for i_time in range (n_timestep):
 
 def makeplot(x,y,z):
 
-    global foldername, imagename
+    global foldername, imagenamepng
 
     Y ,X=np.meshgrid(y,x) #different ordering, columnss are elements of y. There are len(x) rows.
 #    print "lengthof x: ",len(x),"X: ", X
@@ -62,8 +63,9 @@ def makeplot(x,y,z):
     ax1.set_zlim(-80,50)
     plt.title("Vm")
     plt.show()    
-    plt.savefig(imagename)
-    print "Figure saved to {}".format(imagename)
+    plt.savefig(imagenamepng)
+    print "Figure saved to {}".format(imagenamepng)
+    os.system("convert "+imagenamepng+" "+imagenameeps)
 
 #print foldername
 j_e=len(foldername)-1

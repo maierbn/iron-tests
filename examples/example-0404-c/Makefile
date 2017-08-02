@@ -12,7 +12,7 @@ release:
 	bash run_example.sh release
 
 create-figures:
-	cd src/scripts; python time_convergence.py 64 3.0; python time_convergence.py 64 1.0; cd ../../results/current_run; cp *.png ../../doc/figures
+	cd src/scripts; python time_convergence.py 64 3.0; python time_convergence.py 64 1.0; cd ../../results/current_run; cp *.eps ../../doc/figures
 
 clean:
 	rm -rf *.diag *.log *.aux *.out debug/ release/

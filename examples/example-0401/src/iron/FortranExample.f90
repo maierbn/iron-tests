@@ -505,7 +505,8 @@ PROGRAM MONODOMAINEXAMPLE
   
   CALL cmfe_CellML_FieldComponentGet(CellML,CellMLModelIndex,CMFE_CELLML_PARAMETERS_FIELD,"membrane/i_Stim",StimComponent,Err)
   !turn stimulus on at central point
-  StimulationNodeIdx = CEILING(DBLE((NUMBER_GLOBAL_X_ELEMENTS*INTERPOLATION_TYPE+1)*(NUMBER_GLOBAL_Y_ELEMENTS*INTERPOLATION_TYPE+1))/2)
+  StimulationNodeIdx = &
+    & CEILING(DBLE((NUMBER_GLOBAL_X_ELEMENTS*INTERPOLATION_TYPE+1)*(NUMBER_GLOBAL_Y_ELEMENTS*INTERPOLATION_TYPE+1))/2)
   
   !CALL cmfe_PrintNodesMapping(Decomposition,Err)
   
