@@ -14,6 +14,12 @@ big:
 	make compare
 	make visualize-big
 
+release: release-fast
+
+debug: debug-fast
+
+create-figures: visualize-fast
+
 debug-fast:
 	bash run_example.sh debug fast
 
