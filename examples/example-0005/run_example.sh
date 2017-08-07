@@ -8,6 +8,7 @@ mkdir -p $folder
 
 echo "  compiling $folder"
 cd $folder
+rm -rf CMakeCache.txt CMakeFiles
 cmake -DCMAKE_BUILD_TYPE=$folder -DOPENCMISS_BUILD_TYPE=$folder ..
 make
 cd ..
