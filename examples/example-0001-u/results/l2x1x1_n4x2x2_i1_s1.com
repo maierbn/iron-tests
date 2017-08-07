@@ -39,3 +39,4 @@ gfx modify g_element "/" point glyph colour_bar general size "1*1*1" centre 0,0,
 gfx edit scene
 
 gfx print postscript file doc/figures/current_run_l2x1x1_n4x2x2_i1_s1.eps
+exit
