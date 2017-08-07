@@ -41,7 +41,7 @@ for [nx,i,s,p] in [[24,1,0,1], [24,1,1,1], [10,1,0,1], [24,1,0,2], [24,1,0,8], [
     ####################################################################
     # read reference data
     # read matlab reference data
-    foldername  = "reference/matlab/l1x1_n"+str(nx)+"x"+str(ny)+"_i"+str(i)+"_s0/"
+    foldername  = "reference/matlab/l1x1_n"+str(nx)+"x"+str(ny)+"/"
     matlab_filename = "vm_"+str(t)+".csv"
     
     status = "   matlab file: {}\n".format(foldername+matlab_filename)
