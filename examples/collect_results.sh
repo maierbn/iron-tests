@@ -1,13 +1,15 @@
 here=$(pwd)
 target=$1
-#for examplefolder in `ls -d example-*`
-#do
-#    cd $examplefolder
-#    make compare
-#    cd $here
-#done
-#pwd
+# run compare target for every example
+for examplefolder in `ls -d example-*`
+do
+    cd $examplefolder
+    make compare
+    cd $here
+done
+pwd
 
+# collect 'failed.tests' and 'results.summary' files from each example
 rm -f ../failed.tests
 for failedtests in `ls example-*/results/failed.tests`
 do
