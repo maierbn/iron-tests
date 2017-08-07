@@ -36,10 +36,10 @@ compare:
 	cd results; python compare_solutions.py
 
 visualize-fast:
-	cd results; bash create_animations.sh fast
+	mkdir -p doc/figures; cd results; bash create_animations.sh fast
 
 visualize-big:
-	cd results; bash create_animations.sh big
+	mkdir -p doc/figures; cd results; bash create_animations.sh big
 
 clean:
 	rm -rf *.diag *.log *.aux *.out debug/ release/
