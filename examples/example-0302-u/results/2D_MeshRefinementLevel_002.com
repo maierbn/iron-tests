@@ -48,3 +48,4 @@ gfx modify window 1 set transform_tool current_pane 1 std_view_angle 40 normal_l
 gfx set time 0
 
 gfx print postscript file doc/figures/current_run.eps
+exit
